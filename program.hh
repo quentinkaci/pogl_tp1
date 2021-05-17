@@ -130,6 +130,8 @@ namespace mygl
             glUseProgram(program_);
         };
 
+        inline GLuint get_id() const { return program_; }
+
     private:
         GLuint program_{};
 

@@ -1,23 +1,27 @@
+#pragma once
+
 #include <GL/glew.h>
 #include <GL/glut.h>
 
-bool initGlut(int& argc, char* argv[])
+#include "shaders/shaders.hh"
+
+inline bool initGlut(int& argc, char* argv[])
 {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(1024, 1024);
     glutInitWindowPosition(10, 10);
     glutCreateWindow("Test OpenGL - POGL");
-    // FIXME glutDisplayFunc(display);
+    glutDisplayFunc(display);
     return true;
 }
 
-bool initGlew()
+inline bool initGlew()
 {
     return (glewInit() == GLEW_OK);
 }
 
-bool init_gl()
+inline bool init_gl()
 {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);

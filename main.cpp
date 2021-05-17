@@ -1,6 +1,7 @@
 #include "init.hh"
 #include "matrix4.hh"
 #include "program.hh"
+#include "shaders/shaders.hh"
 #include <fstream>
 #include <iostream>
 
@@ -10,9 +11,12 @@ int main(int argc, char* argv[])
 {
     // Initialization
 
-    init_gl();
-    initGlut(argc, argv);
-    initGlew();
+    if (!init_gl())
+        std::cerr << "OpenGL initialization failed" << std::endl;
+    if (!initGlut(argc, argv))
+        std::cerr << "Glut initialization failed" << std::endl;
+    if (!initGlew())
+        std::cerr << "Glew initialization failed" << std::endl;
 
     // Shaders and Program handling
 
@@ -38,10 +42,19 @@ int main(int argc, char* argv[])
 
     auto program = program::make_program(vertex_shader_content, fragment_shader_content);
 
+    // Shaders setup
+
+    initUniformVariables(program);
+    initVAO({0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1});
+
     if (program->is_ready())
         program->use();
     else
         std::cerr << "Program error: " << program->get_log() << std::endl;
+
+    // Display
+
+    glutMainLoop();
 
     return 0;
 }
