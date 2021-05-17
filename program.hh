@@ -12,7 +12,7 @@ namespace mygl
 
         ~program() { glDeleteProgram(program_); }
 
-        inline static std::shared_ptr<program> make_program(const std::string& vertex_shader_src, const std::string& fragment_shader)
+        inline static std::shared_ptr<program> make_program(const std::string& vertex_shader_src, const std::string& fragment_shader_src)
         {
             auto res = std::make_shared<program>();
 
@@ -48,7 +48,7 @@ namespace mygl
             GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
             // Send the fragment shader source code to GL
-            source = (const GLchar*)fragment_shader.c_str();
+            source = (const GLchar*)fragment_shader_src.c_str();
             glShaderSource(fragmentShader, 1, &source, 0);
 
             // Compile the fragment shader
