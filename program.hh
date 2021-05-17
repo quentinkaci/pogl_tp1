@@ -12,7 +12,7 @@ namespace mygl
 
         ~program() { glDeleteProgram(program_); }
 
-        inline static std::shared_ptr<program> make_program(std::string& vertex_shader_src, std::string& fragment_shader)
+        inline static std::shared_ptr<program> make_program(const std::string& vertex_shader_src, const std::string& fragment_shader)
         {
             auto res = std::make_shared<program>();
 
