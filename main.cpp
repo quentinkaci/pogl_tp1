@@ -44,13 +44,13 @@ int main(int argc, char* argv[])
 
     // Shaders setup
 
-    initUniformVariables(program);
-    initVAO({0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1});
-
     if (program->is_ready())
         program->use();
     else
         std::cerr << "Program error: " << program->get_log() << std::endl;
+
+    initUniformVariables(program);
+    initVAO();
 
     // Display
 
