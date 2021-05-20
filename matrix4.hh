@@ -18,12 +18,10 @@ namespace mygl
 
         inline static matrix4 identity()
         {
-            // clang-format off
             return matrix4({1, 0, 0, 0,
                             0, 1, 0, 0,
                             0, 0, 1, 0,
                             0, 0, 0, 1});
-            // clang-format on
         }
 
         inline void operator*=(const matrix4& rhs)
@@ -88,26 +86,20 @@ inline void frustum(mygl::matrix4& mat,
     float C = (z_far + z_near) / (z_far - z_near);
     float D = (2.f * z_far * z_near) / (z_far - z_near);
 
-    // clang-format off
-    auto rhs =  mygl::matrix4({(2.f * z_near) / (right - left), 0, A, 0,
-                                0, (2.f * z_near) / (top - bottom), B, 0,
-                                0, 0, C, D,
-                                0, 0, -1, 0});
-    // clang-format on
+    auto rhs = mygl::matrix4({(2.f * z_near) / (right - left), 0, A, 0,
+                              0, (2.f * z_near) / (top - bottom), B, 0,
+                              0, 0, C, D,
+                              0, 0, -1, 0});
 
     mat *= rhs;
 }
 
 inline static std::vector<float> cross(const std::vector<float>& u, const std::vector<float>& v)
 {
-    // clang-format off
-    return
-    {
+    return {
         u[1] * v[2] - u[2] * v[1],
         u[2] * v[0] - u[0] * v[2],
-        u[0] * v[1] - u[1] - v[0]
-    };
-    // clang-format on
+        u[0] * v[1] - u[1] - v[0]};
 }
 
 inline static void normalize(std::vector<float>& v)
@@ -142,25 +134,17 @@ inline void look_at(mygl::matrix4& mat,
     std::vector<float> up = cross(side, forward);
     normalize(up);
 
-    // clang-format off
-    auto rhs = mygl::matrix4({
-        side[0], side[1], side[2], 0,
-        up[0], up[1], up[2], 0,
-        -forward[0], -forward[1], -forward[2], 0,
-        0, 0, 0, 1
-    });
-    // clang-format on
+    auto rhs = mygl::matrix4({side[0], side[1], side[2], 0,
+                              up[0], up[1], up[2], 0,
+                              -forward[0], -forward[1], -forward[2], 0,
+                              0, 0, 0, 1});
 
     mat *= rhs;
 
     // Translation by (-eyeX, -eyeY, -eyeZ)
 
-    // clang-format off
-    mat *= mygl::matrix4({
-        1, 0, 0, -eyeX,
-        0, 1, 0, -eyeY,
-        0, 0, 1, -eyeZ,
-        0, 0, 0, 1
-    });
-    // clang-format on
+    mat *= mygl::matrix4({1, 0, 0, -eyeX,
+                          0, 1, 0, -eyeY,
+                          0, 0, 1, -eyeZ,
+                          0, 0, 0, 1});
 }
