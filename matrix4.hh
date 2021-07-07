@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 
+#include "vec3.hh"
+
 namespace mygl
 {
     struct matrix4
@@ -94,57 +96,22 @@ inline void frustum(mygl::matrix4& mat,
     mat *= rhs;
 }
 
-inline static std::vector<float> cross(const std::vector<float>& u, const std::vector<float>& v)
-{
-    return {
-        u[1] * v[2] - u[2] * v[1],
-        u[2] * v[0] - u[0] * v[2],
-        u[0] * v[1] - u[1] - v[0]};
-}
-
-inline static void normalize(std::vector<float>& v)
-{
-    float norm = sqrt(pow(v[0], 2) + pow(v[1], 2) + pow(v[2], 2));
-
-    v[0] /= norm;
-    v[1] /= norm;
-    v[2] /= norm;
-}
-
 inline void look_at(mygl::matrix4& mat,
-                    const float& eyeX,
-                    const float& eyeY,
-                    const float& eyeZ,
-                    const float& centerX,
-                    const float& centerY,
-                    const float& centerZ,
-                    float upX,
-                    float upY,
-                    float upZ)
+                    const mygl::vec3& eye,
+                    const mygl::vec3& center,
+                    const mygl::vec3& up)
 {
-    std::vector<float> forward = {centerX - eyeX, centerY - eyeY, centerZ - eyeZ};
-    normalize(forward);
+    mygl::vec3 forward = normalize(center - eye);
+    mygl::vec3 side = normalize(cross(forward, normalize(up)));
+    mygl::vec3 up_ = normalize(cross(side, forward));
 
-    std::vector<float> normalized_up = {upX, upY, upZ};
-    normalize(normalized_up);
+    mat *= mygl::matrix4({side[0], side[1], side[2], 0,
+                          up_[0], up_[1], up_[2], 0,
+                          -forward[0], -forward[1], -forward[2], 0,
+                          0, 0, 0, 1});
 
-    std::vector<float> side = cross(forward, normalized_up);
-    normalize(side);
-
-    std::vector<float> up = cross(side, forward);
-    normalize(up);
-
-    auto rhs = mygl::matrix4({side[0], side[1], side[2], 0,
-                              up[0], up[1], up[2], 0,
-                              -forward[0], -forward[1], -forward[2], 0,
-                              0, 0, 0, 1});
-
-    mat *= rhs;
-
-    // Translation by (-eyeX, -eyeY, -eyeZ)
-
-    mat *= mygl::matrix4({1, 0, 0, -eyeX,
-                          0, 1, 0, -eyeY,
-                          0, 0, 1, -eyeZ,
+    mat *= mygl::matrix4({1, 0, 0, -eye[0],
+                          0, 1, 0, -eye[1],
+                          0, 0, 1, -eye[2],
                           0, 0, 0, 1});
 }

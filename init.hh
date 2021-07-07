@@ -13,6 +13,7 @@ inline bool initGlut(int& argc, char* argv[])
     glutInitWindowPosition(10, 10);
     glutCreateWindow("Test OpenGL - POGL");
     glutDisplayFunc(display);
+    glutSpecialFunc(SpecialKeyHandler);
     return true;
 }
 

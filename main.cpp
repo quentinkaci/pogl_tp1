@@ -42,12 +42,14 @@ int main(int argc, char* argv[])
 
     auto program = program::make_program(vertex_shader_content, fragment_shader_content);
 
-    // Shaders setup
-
     if (program->is_ready())
         program->use();
     else
         std::cerr << "Program error: " << program->get_log() << std::endl;
+
+    // Shaders setup
+
+    setProgram(program);
 
     initUniformVariables(program);
     initVAO();
