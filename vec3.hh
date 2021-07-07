@@ -77,7 +77,7 @@ inline mygl::vec3 operator*(float n, const mygl::vec3& rhs)
 {
     mygl::vec3 res;
     for (int i = 0; i < 3; ++i)
-        res[i] = rhs[i] * n;
+        res[i] = n * rhs[i];
     return res;
 }
 

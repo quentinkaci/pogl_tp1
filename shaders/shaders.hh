@@ -4,6 +4,9 @@
 #include "../program.hh"
 #include "../vec3.hh"
 #include <GL/gl.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 static GLuint vao_id;
 static GLuint vbo_vertex_ids[3];
@@ -23,11 +26,13 @@ static const float colors[] = {1.f, 0.f, 0.f, 1.f,
 // Uniform variables
 
 const float camera_speed = 0.05f;
-mygl::vec3 camera_pos({0.0f, 0.0f, 0.0f});
-mygl::vec3 camera_front({0.0f, 0.0f, -1.0f});
-mygl::vec3 camera_up({0.0f, 1.0f, 0.0f});
+//mygl::vec3 camera_pos({0.0f, 0.0f, 0.0f});
+//mygl::vec3 camera_front({0.0f, 0.0f, -1.0f});
+//mygl::vec3 camera_up({0.0f, 1.0f, 0.0f});
+glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 1.f);
+glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
-static mygl::matrix4 world_to_cam_matrix = mygl::matrix4::identity();
 static float light_position[] = {0.f, 1.f, -0.75f, 1.f};
 
 std::shared_ptr<mygl::program> program = nullptr;
@@ -70,13 +75,16 @@ inline void initVAO()
 void SpecialKeyHandler(int key, int, int)
 {
     if (key == GLUT_KEY_UP)
-        camera_pos = camera_pos + camera_speed * camera_front;
+    {
+        std::cout << "UP" << std::endl;
+        camera_pos += camera_speed * camera_front;
+    }
     else if (key == GLUT_KEY_DOWN)
-        camera_pos = camera_pos - camera_speed * camera_front;
+        camera_pos -= camera_speed * camera_front;
     else if (key == GLUT_KEY_LEFT)
-        camera_pos = camera_pos - normalize(cross(camera_front, camera_up)) * camera_speed;
+        camera_pos -= glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
     else if (key == GLUT_KEY_RIGHT)
-        camera_pos = camera_pos + normalize(cross(camera_front, camera_up)) * camera_speed;
+        camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
 
     glutPostRedisplay();
 }
@@ -86,10 +94,11 @@ inline void display()
     glClearColor(0.0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    look_at(world_to_cam_matrix, camera_pos, camera_pos + camera_front, camera_up);
-    glUniformMatrix4fv(glGetUniformLocation(program->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, world_to_cam_matrix.data.data());
+    //    mygl::matrix4 world_to_cam_matrix = mygl::matrix4::identity();
+    glm::mat4 view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
+    //    look_at(world_to_cam_matrix, camera_pos, camera_pos + camera_front, camera_up);
+    glUniformMatrix4fv(glGetUniformLocation(program->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, &view[0][0]);
 
-    // Draw the triangle !
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     glutSwapBuffers();

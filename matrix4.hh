@@ -101,13 +101,13 @@ inline void look_at(mygl::matrix4& mat,
                     const mygl::vec3& center,
                     const mygl::vec3& up)
 {
-    mygl::vec3 forward = normalize(center - eye);
-    mygl::vec3 side = normalize(cross(forward, normalize(up)));
-    mygl::vec3 up_ = normalize(cross(side, forward));
+    mygl::vec3 f = normalize(center - eye);
+    mygl::vec3 s = normalize(cross(f, normalize(up)));
+    mygl::vec3 u = normalize(cross(s, f));
 
-    mat *= mygl::matrix4({side[0], side[1], side[2], 0,
-                          up_[0], up_[1], up_[2], 0,
-                          -forward[0], -forward[1], -forward[2], 0,
+    mat *= mygl::matrix4({s[0], s[1], s[2], 0,
+                          u[0], u[1], u[2], 0,
+                          -f[0], -f[1], -f[2], 0,
                           0, 0, 0, 1});
 
     mat *= mygl::matrix4({1, 0, 0, -eye[0],
