@@ -23,12 +23,22 @@ static const float colors[] = {1.f, 0.f, 0.f, 1.f,
                                0.f, 1.f, 0.f, 1.f,
                                0.f, 0.f, 1.f, 1.f};
 
-// Uniform variables
+// Camera settings
 
 const float camera_speed = 0.05f;
-glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 1.f);
-glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+mygl::vec3 camera_pos = mygl::vec3({0.0f, 0.0f, 1.f});
+mygl::vec3 camera_front = mygl::vec3({0.0f, 0.0f, -1.0f});
+mygl::vec3 camera_up = mygl::vec3({0.0f, 1.0f, 0.0f});
+
+bool firstMouse = true;
+float yaw = -90.0f;
+float pitch = 0.0f;
+float lastX = 512.0f;
+float lastY = 512.0f;
+float fov = 90.0f;
+
+// Uniform variables
 
 static float light_position[] = {0.f, 1.f, -0.75f, 1.f};
 
@@ -69,19 +79,66 @@ inline void initVAO()
     glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 }
 
-void SpecialKeyHandler(int key, int, int)
+void key_callback(int key, int, int)
 {
     if (key == GLUT_KEY_UP)
-    {
-        std::cout << "UP" << std::endl;
-        camera_pos += camera_speed * camera_front;
-    }
+        camera_pos = camera_pos + camera_speed * camera_front;
     else if (key == GLUT_KEY_DOWN)
-        camera_pos -= camera_speed * camera_front;
+        camera_pos = camera_pos - camera_speed * camera_front;
     else if (key == GLUT_KEY_LEFT)
-        camera_pos -= glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
+        camera_pos = camera_pos - normalize(cross(camera_front, camera_up)) * camera_speed;
     else if (key == GLUT_KEY_RIGHT)
-        camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
+        camera_pos = camera_pos + normalize(cross(camera_front, camera_up)) * camera_speed;
+
+    glutPostRedisplay();
+}
+
+void mouse_motion_callback(int x, int y)
+{
+    if (firstMouse)
+    {
+        lastX = x;
+        lastY = y;
+        firstMouse = false;
+    }
+
+    float xoffset = x - lastX;
+    float yoffset = lastY - y;
+    lastX = x;
+    lastY = y;
+
+    float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    mygl::vec3 direction;
+    direction[0] = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction[1] = sin(glm::radians(pitch));
+    direction[2] = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    camera_front = normalize(direction);
+
+    glutPostRedisplay();
+}
+
+void mouse_scroll_callback(int button, int, int, int)
+{
+    if (button == 3)
+        fov -= (float)1;
+    else if (button == 4)
+        fov += (float)1;
+
+    if (fov < 1.0f)
+        fov = 1.0f;
+    if (fov > 95.0f)
+        fov = 95.0f;
 
     glutPostRedisplay();
 }
@@ -91,11 +148,11 @@ inline void display()
     glClearColor(0.0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)1024 / (float)1024, 0.1f, 100.0f);
-    glm::mat4 view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
-    auto world_to_cam_matrix = projection * view;
+    mygl::matrix4 world_to_cam_matrix = mygl::matrix4::identity();
+    perspective(world_to_cam_matrix, 90, 1, 0.1f, 100.0f);
+    look_at(world_to_cam_matrix, camera_pos, camera_pos + camera_front, camera_up);
 
-    glUniformMatrix4fv(glGetUniformLocation(program->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(program->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, world_to_cam_matrix.data.data());
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 

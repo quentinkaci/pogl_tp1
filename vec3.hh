@@ -88,6 +88,14 @@ inline mygl::vec3 cross(const mygl::vec3& lhs, const mygl::vec3& rhs)
                        lhs[0] * rhs[1] - lhs[1] - rhs[0]});
 }
 
+inline float dot(const mygl::vec3& lhs, const mygl::vec3& rhs)
+{
+    float res = 0;
+    for (int i = 0; i < 3; ++i)
+        res += lhs[i] * rhs[i];
+    return res;
+}
+
 inline mygl::vec3 normalize(const mygl::vec3& v)
 {
     float norm = sqrt(pow(v[0], 2) + pow(v[1], 2) + pow(v[2], 2));

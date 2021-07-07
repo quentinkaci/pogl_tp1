@@ -75,25 +75,26 @@ inline std::ostream& operator<<(std::ostream& out, const mygl::matrix4& m)
     return out << '\n';
 }
 
-inline void frustum(mygl::matrix4& mat,
-                    const float& left,
-                    const float& right,
-                    const float& bottom,
-                    const float& top,
-                    const float& z_near,
-                    const float& z_far)
+inline void perspective(mygl::matrix4& mat,
+                        float angle, float ratio,
+                        const float& z_near,
+                        const float& z_far)
 {
+    float scale = tan(angle * 0.5 * M_PI / 180) * z_near;
+    float right = ratio * scale;
+    float left = -right;
+    float top = scale;
+    float bottom = -top;
+
     float A = (right + left) / (right - left);
     float B = (top + bottom) / (top - bottom);
-    float C = (z_far + z_near) / (z_far - z_near);
-    float D = (2.f * z_far * z_near) / (z_far - z_near);
+    float C = -(z_far + z_near) / (z_far - z_near);
+    float D = -(2.f * z_far * z_near) / (z_far - z_near);
 
-    auto rhs = mygl::matrix4({(2.f * z_near) / (right - left), 0, A, 0,
-                              0, (2.f * z_near) / (top - bottom), B, 0,
-                              0, 0, C, D,
-                              0, 0, -1, 0});
-
-    mat *= rhs;
+    mat *= mygl::matrix4({(2.f * z_near) / (right - left), 0, 0, 0,
+                          0, (2.f * z_near) / (top - bottom), 0, 0,
+                          A, B, C, -1,
+                          0, 0, D, 0});
 }
 
 inline void look_at(mygl::matrix4& mat,
@@ -103,15 +104,10 @@ inline void look_at(mygl::matrix4& mat,
 {
     mygl::vec3 f = normalize(center - eye);
     mygl::vec3 s = normalize(cross(f, normalize(up)));
-    mygl::vec3 u = normalize(cross(s, f));
+    mygl::vec3 u = cross(s, f);
 
-    mat *= mygl::matrix4({s[0], s[1], s[2], 0,
-                          u[0], u[1], u[2], 0,
-                          -f[0], -f[1], -f[2], 0,
-                          0, 0, 0, 1});
-
-    mat *= mygl::matrix4({1, 0, 0, -eye[0],
-                          0, 1, 0, -eye[1],
-                          0, 0, 1, -eye[2],
-                          0, 0, 0, 1});
+    mat *= mygl::matrix4({s[0], u[0], -f[0], 0,
+                          s[1], u[1], -f[1], 0,
+                          s[2], u[2], -f[2], 0,
+                          -dot(s, eye), -dot(u, eye), dot(f, eye), 1});
 }
