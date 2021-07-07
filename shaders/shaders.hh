@@ -26,9 +26,6 @@ static const float colors[] = {1.f, 0.f, 0.f, 1.f,
 // Uniform variables
 
 const float camera_speed = 0.05f;
-//mygl::vec3 camera_pos({0.0f, 0.0f, 0.0f});
-//mygl::vec3 camera_front({0.0f, 0.0f, -1.0f});
-//mygl::vec3 camera_up({0.0f, 1.0f, 0.0f});
 glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 1.f);
 glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -94,10 +91,11 @@ inline void display()
     glClearColor(0.0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //    mygl::matrix4 world_to_cam_matrix = mygl::matrix4::identity();
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)1024 / (float)1024, 0.1f, 100.0f);
     glm::mat4 view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
-    //    look_at(world_to_cam_matrix, camera_pos, camera_pos + camera_front, camera_up);
-    glUniformMatrix4fv(glGetUniformLocation(program->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, &view[0][0]);
+    auto world_to_cam_matrix = projection * view;
+
+    glUniformMatrix4fv(glGetUniformLocation(program->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
