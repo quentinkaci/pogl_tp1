@@ -114,10 +114,7 @@ void mouse_motion_callback(int x, int y)
     yaw += xoffset;
     pitch += yoffset;
 
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
+    pitch = std::clamp(pitch, -89.0f, 89.0f);
 
     mygl::vec3 direction;
     direction[0] = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -135,10 +132,7 @@ void mouse_scroll_callback(int button, int, int, int)
     else if (button == 4)
         fov += (float)1;
 
-    if (fov < 1.0f)
-        fov = 1.0f;
-    if (fov > 95.0f)
-        fov = 95.0f;
+    fov = std::clamp(fov, 1.0f, 90.0f);
 
     glutPostRedisplay();
 }
@@ -149,7 +143,7 @@ inline void display()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     mygl::matrix4 world_to_cam_matrix = mygl::matrix4::identity();
-    perspective(world_to_cam_matrix, 90, 1, 0.1f, 100.0f);
+    perspective(world_to_cam_matrix, fov, 1.0f, 0.1f, 100.0f);
     look_at(world_to_cam_matrix, camera_pos, camera_pos + camera_front, camera_up);
 
     glUniformMatrix4fv(glGetUniformLocation(program->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, world_to_cam_matrix.data.data());
