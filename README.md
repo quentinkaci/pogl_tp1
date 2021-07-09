@@ -2,5 +2,4 @@
 
 ## To-Do
 
-- [ ] Normals + light
 - [ ] Clean camera.hh
