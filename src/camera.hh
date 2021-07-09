@@ -9,22 +9,28 @@
 
 namespace mygl
 {
-    class camera
+    constexpr float CAMERA_SPEED = 0.1f;
+    constexpr float CAMERA_SENSITIVITY = 0.1f;
+    constexpr glm::vec3 CAMERA_DEFAULT_POS = glm::vec3({0.0f, 0.0f, 1.f});
+    constexpr glm::vec3 CAMERA_DEFAULT_FRONT = glm::vec3({0.0f, 0.0f, -1.0f});
+    constexpr glm::vec3 CAMERA_UP = glm::vec3({0.0f, 1.0f, 0.0f});
+
+    class Camera
     {
     protected:
-        camera()
+        Camera()
         {
         }
 
-        static camera* singleton_;
+        static Camera* singleton_;
 
     public:
-        static camera* get_instance();
+        static Camera* get_instance();
 
         glm::mat4 get_world_to_cam_matrix() const
         {
             glm::mat4 projection = glm::perspective(glm::radians(fov), 1.0f, 0.1f, 100.0f);
-            glm::mat4 view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
+            glm::mat4 view = glm::lookAt(camera_pos, camera_pos + camera_front, CAMERA_UP);
             glm::mat4 world_to_cam_matrix = projection * view;
             return world_to_cam_matrix;
         }
@@ -32,32 +38,28 @@ namespace mygl
         void key_callback(int key, int, int)
         {
             if (key == GLUT_KEY_UP)
-                camera_pos = camera_pos + camera_speed * camera_front;
+                camera_pos = camera_pos + CAMERA_SPEED * camera_front;
             else if (key == GLUT_KEY_DOWN)
-                camera_pos = camera_pos - camera_speed * camera_front;
+                camera_pos = camera_pos - CAMERA_SPEED * camera_front;
             else if (key == GLUT_KEY_LEFT)
-                camera_pos = camera_pos - normalize(cross(camera_front, camera_up)) * camera_speed;
+                camera_pos = camera_pos - normalize(cross(camera_front, CAMERA_UP)) * CAMERA_SPEED;
             else if (key == GLUT_KEY_RIGHT)
-                camera_pos = camera_pos + normalize(cross(camera_front, camera_up)) * camera_speed;
+                camera_pos = camera_pos + normalize(cross(camera_front, CAMERA_UP)) * CAMERA_SPEED;
 
             glutPostRedisplay();
         }
 
         void mouse_motion_callback(int x, int y)
         {
-            float xoffset = x - lastX;
-            float yoffset = lastY - y;
-            lastX = x;
-            lastY = y;
-
-            float sensitivity = 0.1f;
-            xoffset *= sensitivity;
-            yoffset *= sensitivity;
+            float xoffset = (x - last_x) * CAMERA_SENSITIVITY;
+            float yoffset = (last_y - y) * CAMERA_SENSITIVITY;
+            
+            last_x = x;
+            last_y = y;
 
             yaw += xoffset;
             pitch += yoffset;
-
-            pitch = std::clamp(pitch, -89.0f, 89.0f);
+            pitch = std::clamp(pitch, -90.0f, 90.0f);
 
             glm::vec3 direction;
             direction[0] = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -71,19 +73,13 @@ namespace mygl
         void mouse_callback(int button, int state, int x, int y)
         {
             if (button == 3)
-                fov -= (float)1;
+                fov -= 1;
             else if (button == 4)
-                fov += (float)1;
-            else if (button == GLUT_LEFT_BUTTON)
+                fov += 1;
+            else if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
             {
-                if (state == GLUT_DOWN)
-                {
-                    lastX = x;
-                    lastY = y;
-                    firstMouse = false;
-                }
-                else if (state == GLUT_UP)
-                    firstMouse = true;
+                last_x = x;
+                last_y = y;
             }
 
             fov = std::clamp(fov, 1.0f, 90.0f);
@@ -92,26 +88,22 @@ namespace mygl
         }
 
     private:
-        const float camera_speed = 0.05f;
+        glm::vec3 camera_pos = CAMERA_DEFAULT_POS;
+        glm::vec3 camera_front = CAMERA_DEFAULT_FRONT;
 
-        glm::vec3 camera_pos = glm::vec3({0.0f, 0.0f, 1.f});
-        glm::vec3 camera_front = glm::vec3({0.0f, 0.0f, -1.0f});
-        glm::vec3 camera_up = glm::vec3({0.0f, 1.0f, 0.0f});
-
-        bool firstMouse = true;
         float yaw = -90.0f;
         float pitch = 0.0f;
-        float lastX = 512.0f;
-        float lastY = 512.0f;
+        float last_x = 512.0f;
+        float last_y = 512.0f;
         float fov = 90.0f;
     };
 
-    camera* camera::singleton_ = nullptr;
+    Camera* Camera::singleton_ = nullptr;
 
-    camera* camera::get_instance()
+    Camera* Camera::get_instance()
     {
         if (singleton_ == nullptr)
-            singleton_ = new camera();
+            singleton_ = new Camera();
 
         return singleton_;
     }

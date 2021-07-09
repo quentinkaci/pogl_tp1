@@ -6,29 +6,29 @@
 
 namespace mygl
 {
-    class program
+    class Program
     {
     protected:
-        static std::shared_ptr<program> singleton_;
+        static std::shared_ptr<Program> singleton_;
 
     public:
-        static std::shared_ptr<program> get_instance()
+        static std::shared_ptr<Program> get_instance()
         {
             return singleton_;
         }
 
-        program()
+        Program()
         {
         }
 
-        ~program() { glDeleteProgram(program_); }
+        ~Program() { glDeleteProgram(program_); }
 
-        inline static std::shared_ptr<program> make_program(const std::string& vertex_shader_src, const std::string& fragment_shader_src)
+        inline static std::shared_ptr<Program> make_program(const std::string& vertex_shader_src, const std::string& fragment_shader_src)
         {
             if (singleton_ != nullptr)
                 return singleton_;
 
-            singleton_ = std::make_shared<program>();
+            singleton_ = std::make_shared<Program>();
 
             // Create an empty vertex shader handle
             GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -154,5 +154,5 @@ namespace mygl
         bool is_ready_ = false;
     };
 
-    std::shared_ptr<program> program::singleton_ = nullptr;
+    std::shared_ptr<Program> Program::singleton_ = nullptr;
 } // namespace mygl

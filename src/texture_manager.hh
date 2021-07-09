@@ -7,7 +7,7 @@
 class TextureManager
 {
 public:
-    TextureManager(std::shared_ptr<mygl::program> program) : program_(std::move(program)) {}
+    TextureManager(std::shared_ptr<mygl::Program> program) : program_(std::move(program)) {}
 
     void add_texture(const std::string& filename, const std::string& shader_name)
     {
@@ -38,5 +38,5 @@ public:
 private:
     int nb_texture_ = 0;
 
-    std::shared_ptr<mygl::program> program_ = nullptr;
+    std::shared_ptr<mygl::Program> program_ = nullptr;
 };

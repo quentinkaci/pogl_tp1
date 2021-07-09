@@ -11,17 +11,17 @@
 
 void key_callback(int key, int, int)
 {
-    mygl::camera::get_instance()->key_callback(key, 0, 0);
+    mygl::Camera::get_instance()->key_callback(key, 0, 0);
 }
 
 void mouse_motion_callback(int x, int y)
 {
-    mygl::camera::get_instance()->mouse_motion_callback(x, y);
+    mygl::Camera::get_instance()->mouse_motion_callback(x, y);
 }
 
 void mouse_callback(int button, int state, int x, int y)
 {
-    mygl::camera::get_instance()->mouse_callback(button, state, x, y);
+    mygl::Camera::get_instance()->mouse_callback(button, state, x, y);
 }
 
 inline bool initGlut(int& argc, char* argv[])
@@ -57,7 +57,7 @@ inline bool init_gl()
     return true;
 }
 
-std::shared_ptr<mygl::program> init(int argc,
+std::shared_ptr<mygl::Program> init(int argc,
                                     char* argv[],
                                     const std::string& vert_shader_path,
                                     const std::string& frag_shader_path)
@@ -93,7 +93,7 @@ std::shared_ptr<mygl::program> init(int argc,
     std::string fragment_shader_content((std::istreambuf_iterator<char>(fragment_shader)),
                                         (std::istreambuf_iterator<char>()));
 
-    auto program = mygl::program::make_program(vertex_shader_content, fragment_shader_content);
+    auto program = mygl::Program::make_program(vertex_shader_content, fragment_shader_content);
 
     if (program->is_ready())
         program->use();

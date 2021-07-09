@@ -11,16 +11,19 @@
 #include <glm/gtc/type_ptr.hpp>
 
 constexpr float LIGHT_POS[] = {-1.f, 1.f, 2.f, 1.f};
+
 constexpr int NB_CUBES = 2;
+
 constexpr glm::vec3 CUBE_POS[] = {
     glm::vec3(0.0f, -1.0f, -2.0f),
     glm::vec3(3.0f, -2.0f, -6.0f)
 };
+
 std::size_t nb_vertices;
 
 void initUniformVariables()
 {
-    GLint loc = glGetUniformLocation(mygl::program::get_instance()->get_id(), "light_position");
+    GLint loc = glGetUniformLocation(mygl::Program::get_instance()->get_id(), "light_position");
     if (loc != -1)
         glUniform4f(loc, LIGHT_POS[0], LIGHT_POS[1], LIGHT_POS[2], LIGHT_POS[3]);
 }
@@ -73,9 +76,9 @@ void display()
         model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 
         // Update world_to_cam_matrix
-        glm::mat4 world_to_cam_matrix = mygl::camera::get_instance()->get_world_to_cam_matrix();
+        glm::mat4 world_to_cam_matrix = mygl::Camera::get_instance()->get_world_to_cam_matrix();
         world_to_cam_matrix = world_to_cam_matrix * model;
-        glUniformMatrix4fv(glGetUniformLocation(mygl::program::get_instance()->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(mygl::Program::get_instance()->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
 
         glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
     }
