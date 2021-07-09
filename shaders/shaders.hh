@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../image.hh"
 #include "../matrix4.hh"
 #include "../obj_loader.hh"
 #include "../program.hh"
@@ -87,30 +86,6 @@ inline void initVAO()
     glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-}
-
-void initTextures(const std::vector<std::string>& textures)
-{
-    int i = 0;
-    std::string texture_name = "texture";
-    //    std::string file_delimiter = ".";
-    //    std::string texture_name = textures[i].substr(0, textures[i].find(file_delimiter));
-
-    auto texture = PNGImage::load(textures[i]);
-    GLint texture_loc;
-    GLuint texture_id;
-
-    glGenTextures(1, &texture_id);
-    glActiveTexture(GL_TEXTURE0 + i);
-    glBindTexture(GL_TEXTURE_2D, texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.width, texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture.pixels.data());
-    texture_loc = glGetUniformLocation(program->get_id(), (texture_name + "_sampler").c_str());
-    glUniform1i(texture_loc, i);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
 void key_callback(int key, int, int)

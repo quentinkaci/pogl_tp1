@@ -2,6 +2,7 @@
 #include "matrix4.hh"
 #include "program.hh"
 #include "shaders/shaders.hh"
+#include "texture_manager.hh"
 #include <fstream>
 #include <iostream>
 
@@ -51,9 +52,11 @@ int main(int argc, char* argv[])
 
     setProgram(program);
 
+    TextureManager texture_manager(program);
+
     initUniformVariables();
     initVAO();
-    initTextures({"../shaders/texture.png"});
+    texture_manager.add_texture("../shaders/texture.png", "texture_sampler");
 
     // Display
 
