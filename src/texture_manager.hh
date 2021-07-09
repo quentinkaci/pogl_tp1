@@ -1,6 +1,6 @@
 #pragma once
 
-#include "image.hh"
+#include "utils/image.hh"
 
 #include <utility>
 

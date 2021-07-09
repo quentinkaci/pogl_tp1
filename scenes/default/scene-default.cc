@@ -1,10 +1,11 @@
-#pragma once
+#include <GL/glew.h>
 
-#include "../matrix4.hh"
-#include "../obj_loader.hh"
-#include "../program.hh"
-#include "../vec3.hh"
 #include <GL/gl.h>
+
+#include "camera.hh"
+#include "init.hh"
+#include "obj_loader.hh"
+#include "program.hh"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -18,19 +19,19 @@ static float light_position[] = {0.f, 1.f, -0.75f, 1.f};
 
 std::size_t nb_vertices;
 
-inline void initUniformVariables()
+void initUniformVariables()
 {
     GLint loc = glGetUniformLocation(mygl::program::get_instance()->get_id(), "light_position");
     if (loc != -1)
         glUniform4f(loc, light_position[0], light_position[1], light_position[2], light_position[3]);
 }
 
-inline void initVAO()
+void initVAO()
 {
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
-    mygl::ObjLoader::load_obj("../shaders/cube.obj", vertices, uvs, normals);
+    mygl::ObjLoader::load_obj("../scenes/default/cube.obj", vertices, uvs, normals);
     nb_vertices = vertices.size();
 
     glGenVertexArrays(1, &vao_id);
@@ -54,7 +55,7 @@ inline void initVAO()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 }
 
-inline void display()
+void display()
 {
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -66,4 +67,20 @@ inline void display()
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
     glutSwapBuffers();
+}
+
+int main(int argc, char* argv[])
+{
+    auto program = init(argc, argv, "../scenes/default/basic.vert", "../scenes/default/basic.frag");
+    glutDisplayFunc(display);
+
+    initUniformVariables();
+    initVAO();
+
+    TextureManager texture_manager(program);
+    texture_manager.add_texture("../scenes/default/texture.png", "texture_sampler");
+
+    glutMainLoop();
+
+    return 0;
 }
