@@ -51,8 +51,9 @@ int main(int argc, char* argv[])
 
     setProgram(program);
 
-    initUniformVariables(program);
+    initUniformVariables();
     initVAO();
+    initTextures({});
 
     // Display
 

@@ -9,11 +9,12 @@ add_definitions(${GLM_DEFINITIONS})
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(PNG REQUIRED)
 
-include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS})
+include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${PNG_INCLUDE_DIR})
 
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(pogl main.cpp)
 
-target_link_libraries(pogl OpenGL::GL GLUT::GLUT GLEW::GLEW)
+target_link_libraries(pogl OpenGL::GL GLUT::GLUT GLEW::GLEW ${PNG_LIBRARY})
