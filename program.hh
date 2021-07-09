@@ -7,14 +7,27 @@ namespace mygl
 {
     class program
     {
+    protected:
+        static std::shared_ptr<program> singleton_;
+
     public:
-        program() = default;
+        static std::shared_ptr<program> get_instance()
+        {
+            return singleton_;
+        }
+
+        program()
+        {
+        }
 
         ~program() { glDeleteProgram(program_); }
 
         inline static std::shared_ptr<program> make_program(const std::string& vertex_shader_src, const std::string& fragment_shader_src)
         {
-            auto res = std::make_shared<program>();
+            if (singleton_ != nullptr)
+                return singleton_;
+
+            singleton_ = std::make_shared<program>();
 
             // Create an empty vertex shader handle
             GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -39,9 +52,9 @@ namespace mygl
                 // We don't need the shader anymore.
                 glDeleteShader(vertexShader);
 
-                res->last_log = &infoLog[0];
+                singleton_->last_log = &infoLog[0];
 
-                return res;
+                return singleton_;
             }
 
             // Create an empty fragment shader handle
@@ -68,9 +81,9 @@ namespace mygl
                 // Either of them. Don't leak shaders.
                 glDeleteShader(vertexShader);
 
-                res->last_log = &infoLog[0];
+                singleton_->last_log = &infoLog[0];
 
-                return res;
+                return singleton_;
             }
 
             // Vertex and fragment shaders are successfully compiled.
@@ -78,7 +91,7 @@ namespace mygl
             // Get a program object.
             GLuint program = glCreateProgram();
 
-            res->program_ = program;
+            singleton_->program_ = program;
 
             // Attach our shaders to our program
             glAttachShader(program, vertexShader);
@@ -104,18 +117,18 @@ namespace mygl
                 glDeleteShader(vertexShader);
                 glDeleteShader(fragmentShader);
 
-                res->last_log = &infoLog[0];
+                singleton_->last_log = &infoLog[0];
 
-                return res;
+                return singleton_;
             }
 
             // Always detach shaders after a successful link.
             glDetachShader(program, vertexShader);
             glDetachShader(program, fragmentShader);
 
-            res->is_ready_ = true;
+            singleton_->is_ready_ = true;
 
-            return res;
+            return singleton_;
         };
 
         inline std::string get_log()
@@ -139,4 +152,6 @@ namespace mygl
 
         bool is_ready_ = false;
     };
+
+    std::shared_ptr<program> program::singleton_ = nullptr;
 } // namespace mygl

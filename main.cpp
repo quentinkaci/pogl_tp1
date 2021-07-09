@@ -48,10 +48,6 @@ int main(int argc, char* argv[])
     else
         std::cerr << "Program error: " << program->get_log() << std::endl;
 
-    // Shaders setup
-
-    setProgram(program);
-
     TextureManager texture_manager(program);
 
     initUniformVariables();
