@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../matrix4.hh"
+#include "../obj_loader.hh"
 #include "../program.hh"
 #include "../vec3.hh"
 #include <GL/gl.h>
@@ -13,12 +14,12 @@ static GLuint vbo_vertex_ids[3];
 
 // VBO
 
-static const float vertices[] = {-0.5f, -0.5f, 0.f, 1.f,
-                                 0.5f, -0.5f, 0.f, 1.f,
-                                 0.f, 0.5f, 0.f, 1.f};
-static const float normals[] = {0.f, 0.f, -1.f, 1.f,
-                                0.f, 0.f, -1.f, 1.f,
-                                0.f, 0.f, -1.f, 1.f};
+static const float vertices_[] = {-0.5f, -0.5f, 0.f, 1.f,
+                                  0.5f, -0.5f, 0.f, 1.f,
+                                  0.f, 0.5f, 0.f, 1.f};
+static const float normals_[] = {0.f, 0.f, -1.f, 1.f,
+                                 0.f, 0.f, -1.f, 1.f,
+                                 0.f, 0.f, -1.f, 1.f};
 static const float colors[] = {1.f, 0.f, 0.f, 1.f,
                                0.f, 1.f, 0.f, 1.f,
                                0.f, 0.f, 1.f, 1.f};
@@ -27,9 +28,9 @@ static const float colors[] = {1.f, 0.f, 0.f, 1.f,
 
 const float camera_speed = 0.05f;
 
-mygl::vec3 camera_pos = mygl::vec3({0.0f, 0.0f, 1.f});
-mygl::vec3 camera_front = mygl::vec3({0.0f, 0.0f, -1.0f});
-mygl::vec3 camera_up = mygl::vec3({0.0f, 1.0f, 0.0f});
+glm::vec3 camera_pos = glm::vec3({0.0f, 0.0f, 1.f});
+glm::vec3 camera_front = glm::vec3({0.0f, 0.0f, -1.0f});
+glm::vec3 camera_up = glm::vec3({0.0f, 1.0f, 0.0f});
 
 bool firstMouse = true;
 float yaw = -90.0f;
@@ -58,25 +59,30 @@ inline void initUniformVariables(const std::shared_ptr<mygl::program>& program)
 
 inline void initVAO()
 {
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec2> uvs;
+    std::vector<glm::vec3> normals;
+    mygl::obj_loader::load_obj("../shaders/cube.obj", vertices, uvs, normals);
+
     glGenVertexArrays(1, &vao_id);
     glBindVertexArray(vao_id);
 
-    glGenBuffers(3, vbo_vertex_ids);
+    glGenBuffers(1, vbo_vertex_ids);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_vertex_ids[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0 * sizeof(float), (void*)0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_vertex_ids[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, 4 * sizeof(float), (void*)0);
+    // glBindBuffer(GL_ARRAY_BUFFER, vbo_vertex_ids[1]);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals.data(), GL_STATIC_DRAW);
+    // glEnableVertexAttribArray(1);
+    // glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, 4 * sizeof(float), (void*)0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_vertex_ids[2]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    // glBindBuffer(GL_ARRAY_BUFFER, vbo_vertex_ids[2]);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+    // glEnableVertexAttribArray(2);
+    // glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 }
 
 void key_callback(int key, int, int)
@@ -119,7 +125,7 @@ void mouse_motion_callback(int x, int y)
     if (pitch < -89.0f)
         pitch = -89.0f;
 
-    mygl::vec3 direction;
+    glm::vec3 direction;
     direction[0] = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     direction[1] = sin(glm::radians(pitch));
     direction[2] = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -148,13 +154,16 @@ inline void display()
     glClearColor(0.0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    mygl::matrix4 world_to_cam_matrix = mygl::matrix4::identity();
-    perspective(world_to_cam_matrix, 90, 1, 0.1f, 100.0f);
-    look_at(world_to_cam_matrix, camera_pos, camera_pos + camera_front, camera_up);
+    // glm::mat4 world_to_cam_matrix = glm::mat4::identity();
+    // perspective(world_to_cam_matrix, 90, 1, 0.1f, 100.0f);
+    // look_at(world_to_cam_matrix, camera_pos, camera_pos + camera_front, camera_up);
+    glm::mat4 projection = glm::perspective(glm::radians(fov), (float)1024 / (float)1024, 0.1f, 100.0f);
+    glm::mat4 view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
+    glm::mat4 world_to_cam_matrix = projection * view;
 
-    glUniformMatrix4fv(glGetUniformLocation(program->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, world_to_cam_matrix.data.data());
+    glUniformMatrix4fv(glGetUniformLocation(program->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 
     glutSwapBuffers();
 }
