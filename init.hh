@@ -3,7 +3,23 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 
+#include "camera.hh"
 #include "shaders/shaders.hh"
+
+void key_callback(int key, int, int)
+{
+    mygl::camera::get_instance()->key_callback(key, 0, 0);
+}
+
+void mouse_motion_callback(int x, int y)
+{
+    mygl::camera::get_instance()->mouse_motion_callback(x, y);
+}
+
+void mouse_callback(int button, int state, int x, int y)
+{
+    mygl::camera::get_instance()->mouse_callback(button, state, x, y);
+}
 
 inline bool initGlut(int& argc, char* argv[])
 {
@@ -13,9 +29,11 @@ inline bool initGlut(int& argc, char* argv[])
     glutInitWindowPosition(10, 10);
     glutCreateWindow("OpenGL Project");
     glutDisplayFunc(display);
+
     glutSpecialFunc(key_callback);
     glutMotionFunc(mouse_motion_callback);
     glutMouseFunc(mouse_callback);
+
     return true;
 }
 
