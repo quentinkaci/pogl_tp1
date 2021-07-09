@@ -11,10 +11,10 @@ int main(int argc, char* argv[])
 {
     // Initialization
 
-    if (!init_gl())
-        std::cerr << "OpenGL initialization failed" << std::endl;
     if (!initGlut(argc, argv))
         std::cerr << "Glut initialization failed" << std::endl;
+    if (!init_gl())
+        std::cerr << "OpenGL initialization failed" << std::endl;
     if (!initGlew())
         std::cerr << "Glew initialization failed" << std::endl;
 
@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 
     initUniformVariables();
     initVAO();
-    initTextures({});
+    initTextures({"../shaders/texture.png"});
 
     // Display
 

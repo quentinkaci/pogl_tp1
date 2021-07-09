@@ -14,8 +14,8 @@ inline bool initGlut(int& argc, char* argv[])
     glutCreateWindow("Test OpenGL - POGL");
     glutDisplayFunc(display);
     glutSpecialFunc(key_callback);
-    glutPassiveMotionFunc(mouse_motion_callback);
-    glutMouseFunc(mouse_scroll_callback);
+    glutMotionFunc(mouse_motion_callback);
+    glutMouseFunc(mouse_callback);
     return true;
 }
 
@@ -31,10 +31,8 @@ inline bool init_gl()
     glDepthRange(0.0, 1.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
     glFrontFace(GL_CCW);
     glClearColor(0.0, 0, 0, 0);
 
-    // FIXME
     return true;
 }

@@ -1,12 +1,11 @@
 #version 460
 
-in vec4 normal;
-in vec4 color;
-in vec4 light_dir;
+uniform sampler2D texture_sampler;
 
-out vec4 output_color;
+in vec2 uv;
+
+out vec3 output_color;
 
 void main() {
-    // output_color = clamp((dot(normal, light_dir)) * color, 0.f, 1.f);
-    output_color = vec4(1.f, 1.f, 1.f, 1.f);
+    output_color = texture(texture_sampler, uv).rgb;
 }

@@ -46,6 +46,8 @@ static float light_position[] = {0.f, 1.f, -0.75f, 1.f};
 
 std::shared_ptr<mygl::program> program = nullptr;
 
+std::size_t nb_vertices;
+
 inline void setProgram(const std::shared_ptr<mygl::program>& p)
 {
     program = p;
@@ -64,51 +66,51 @@ inline void initVAO()
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
     mygl::obj_loader::load_obj("../shaders/cube.obj", vertices, uvs, normals);
+    nb_vertices = vertices.size();
 
     glGenVertexArrays(1, &vao_id);
     glBindVertexArray(vao_id);
 
-    glGenBuffers(1, vbo_vertex_ids);
+    glGenBuffers(2, vbo_vertex_ids);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_vertex_ids[0]);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     // glBindBuffer(GL_ARRAY_BUFFER, vbo_vertex_ids[1]);
     // glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals.data(), GL_STATIC_DRAW);
     // glEnableVertexAttribArray(1);
     // glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, 4 * sizeof(float), (void*)0);
 
-    // glBindBuffer(GL_ARRAY_BUFFER, vbo_vertex_ids[2]);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-    // glEnableVertexAttribArray(2);
-    // glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_vertex_ids[1]);
+    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 }
 
 void initTextures(const std::vector<std::string>& textures)
 {
-    for (std::size_t i = 0; i < textures.size(); ++i)
-    {
-        std::string file_delimiter = ".";
-        std::string texture_name = textures[i].substr(0, textures[i].find(file_delimiter));
+    int i = 0;
+    std::string texture_name = "texture";
+    //    std::string file_delimiter = ".";
+    //    std::string texture_name = textures[i].substr(0, textures[i].find(file_delimiter));
 
-        auto texture = PNGImage::load(textures[i]);
-        GLint texture_loc;
-        GLuint texture_id;
+    auto texture = PNGImage::load(textures[i]);
+    GLint texture_loc;
+    GLuint texture_id;
 
-        glGenTextures(1, &texture_id);
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, texture_id);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.width, texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture.pixels.data());
-        texture_loc = glGetUniformLocation(program->get_id(), (texture_name + "_sampler").c_str());
-        glUniform1i(texture_loc, i);
+    glGenTextures(1, &texture_id);
+    glActiveTexture(GL_TEXTURE0 + i);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.width, texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture.pixels.data());
+    texture_loc = glGetUniformLocation(program->get_id(), (texture_name + "_sampler").c_str());
+    glUniform1i(texture_loc, i);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    }
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
 void key_callback(int key, int, int)
@@ -127,13 +129,6 @@ void key_callback(int key, int, int)
 
 void mouse_motion_callback(int x, int y)
 {
-    if (firstMouse)
-    {
-        lastX = x;
-        lastY = y;
-        firstMouse = false;
-    }
-
     float xoffset = x - lastX;
     float yoffset = lastY - y;
     lastX = x;
@@ -157,12 +152,23 @@ void mouse_motion_callback(int x, int y)
     glutPostRedisplay();
 }
 
-void mouse_scroll_callback(int button, int, int, int)
+void mouse_callback(int button, int state, int x, int y)
 {
     if (button == 3)
         fov -= (float)1;
     else if (button == 4)
         fov += (float)1;
+    else if (button == GLUT_LEFT_BUTTON)
+    {
+        if (state == GLUT_DOWN)
+        {
+            lastX = x;
+            lastY = y;
+            firstMouse = false;
+        }
+        else if (state == GLUT_UP)
+            firstMouse = true;
+    }
 
     fov = std::clamp(fov, 1.0f, 90.0f);
 
@@ -171,19 +177,16 @@ void mouse_scroll_callback(int button, int, int, int)
 
 inline void display()
 {
-    glClearColor(0.0, 0, 0, 0);
+    glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // glm::mat4 world_to_cam_matrix = glm::mat4::identity();
-    // perspective(world_to_cam_matrix, 90, 1, 0.1f, 100.0f);
-    // look_at(world_to_cam_matrix, camera_pos, camera_pos + camera_front, camera_up);
-    glm::mat4 projection = glm::perspective(glm::radians(fov), (float)1024 / (float)1024, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(fov), 1.0f, 0.1f, 100.0f);
     glm::mat4 view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
     glm::mat4 world_to_cam_matrix = projection * view;
 
     glUniformMatrix4fv(glGetUniformLocation(program->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
 
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
     glutSwapBuffers();
 }

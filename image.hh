@@ -4,7 +4,7 @@
 
 #include <png++/png.hpp>
 
-struct Color
+struct __attribute__((packed)) Color
 {
     unsigned char r;
     unsigned char g;
@@ -33,22 +33,6 @@ struct PNGImage
         }
 
         return res;
-    }
-
-    inline void save(const std::string& filename)
-    {
-        png::image<png::rgb_pixel> image(width, height);
-
-        for (size_t j = 0; j < height; ++j)
-        {
-            for (size_t i = 0; i < width; ++i)
-            {
-                auto pix = pixels[i + j * width];
-                image[j][i] = png::rgb_pixel(pix.r, pix.g, pix.b);
-            }
-        }
-
-        image.write(filename);
     }
 
     unsigned int height;

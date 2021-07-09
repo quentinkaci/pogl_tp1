@@ -15,7 +15,7 @@ namespace mygl
                              std::vector<glm::vec2>& uvs,
                              std::vector<glm::vec3>& normals)
         {
-            printf("Loading OBJ file %s...\n", path);
+            printf("Loading OBJ file %s...\n", path.c_str());
 
             std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
             std::vector<glm::vec3> temp_vertices;
@@ -51,7 +51,6 @@ namespace mygl
                 {
                     glm::vec2 uv;
                     fscanf(file, "%f %f\n", &uv.x, &uv.y);
-                    uv.y = -uv.y; // Invert V coordinate since we will only use DDS texture, which are inverted. Remove if you want to use TGA or BMP loaders.
                     temp_uvs.push_back(uv);
                 }
                 else if (strcmp(lineHeader, "vn") == 0)
