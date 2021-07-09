@@ -64,7 +64,7 @@ inline void initVAO()
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
-    mygl::obj_loader::load_obj("../shaders/cube.obj", vertices, uvs, normals);
+    mygl::ObjLoader::load_obj("../shaders/cube.obj", vertices, uvs, normals);
     nb_vertices = vertices.size();
 
     glGenVertexArrays(1, &vao_id);

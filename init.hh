@@ -11,7 +11,7 @@ inline bool initGlut(int& argc, char* argv[])
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(1024, 1024);
     glutInitWindowPosition(10, 10);
-    glutCreateWindow("Test OpenGL - POGL");
+    glutCreateWindow("OpenGL Project");
     glutDisplayFunc(display);
     glutSpecialFunc(key_callback);
     glutMotionFunc(mouse_motion_callback);
