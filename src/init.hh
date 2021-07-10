@@ -48,7 +48,6 @@ inline bool init_gl()
 {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glDepthRange(0.0, 1.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(0.0, 0, 0, 0);
 

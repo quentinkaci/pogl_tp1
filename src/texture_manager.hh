@@ -11,6 +11,28 @@ class TextureManager
 public:
     TextureManager() = default;
 
+    void add_cube_map_texture(const std::vector<std::string>& faces_filename)
+    {
+        GLuint cube_map_id;
+
+        glGenTextures(1, &cube_map_id);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cube_map_id);
+
+        for (unsigned int i = 0; i < faces_filename.size(); i++)
+        {
+            auto image = PNGImage::load(faces_filename[i]);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, image.width, image.height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.pixels.data());
+        }
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+        ids_.push_back(cube_map_id);
+    }
+
     void set_program(GLuint program)
     {
         program_ = program;
@@ -18,9 +40,6 @@ public:
 
     void add_texture(const std::string& filename)
     {
-        if (program_ == -1)
-            return;
-
         auto nb_textures = ids_.size();
 
         auto texture = PNGImage::load(filename);
@@ -52,12 +71,15 @@ public:
 
     void bind_texture(size_t pos)
     {
-        if (program_ == -1)
-            return;
-
         glActiveTexture(GL_TEXTURE0 + pos);
         glBindTexture(GL_TEXTURE_2D, ids_[pos]);
         glUniform1i(texture_loc_, pos);
+    }
+
+    void bind_cube_map_texture(size_t pos)
+    {
+        glActiveTexture(GL_TEXTURE0 + pos);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, ids_[pos]);
     }
 
 private:
