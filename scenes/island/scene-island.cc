@@ -1,22 +1,12 @@
 #include <GL/glew.h>
 
-#include <GL/gl.h>
-
 #include "camera.hh"
 #include "init.hh"
 #include "obj_loader.hh"
 #include "program.hh"
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 constexpr float LIGHT_POS[] = {-1.f, 1000.f, 2.f, 1.f};
-
-constexpr int NB_CUBES = 2;
-
-constexpr glm::vec3 CUBE_POS[] = {
-    glm::vec3(0.0f, -1.5f, -2.0f),
-    glm::vec3(3.0f, -2.0f, -6.0f)};
 
 TextureManager texture_manager;
 
