@@ -10,14 +10,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-constexpr float LIGHT_POS[] = {-1.f, 1.f, 2.f, 1.f};
+constexpr float LIGHT_POS[] = {-1.f, 1000.f, 2.f, 1.f};
 
 constexpr int NB_CUBES = 2;
 
 constexpr glm::vec3 CUBE_POS[] = {
     glm::vec3(0.0f, -1.5f, -2.0f),
-    glm::vec3(3.0f, -2.0f, -6.0f)
-};
+    glm::vec3(3.0f, -2.0f, -6.0f)};
+
+TextureManager texture_manager;
 
 void initUniformVariables()
 {
@@ -61,36 +62,32 @@ int initVAO(const std::string& obj_path)
 
 void display()
 {
-    glClearColor(0.756, 0.854, 0.984, 1);
+    glClearColor(1, 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Draw cubes
-    int nb_vertices = initVAO("../scenes/default/cube.obj");
-    for (unsigned int i = 0; i < NB_CUBES; i++)
-    {
-        // Translate cube
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, CUBE_POS[i]);
-        
-        // Rotate cube
-        float angle = 20.0f * i;
-        model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-
-        // Update world_to_cam_matrix
-        glm::mat4 world_to_cam_matrix = mygl::Camera::get_instance()->get_world_to_cam_matrix();
-        world_to_cam_matrix = world_to_cam_matrix * model;
-        glUniformMatrix4fv(glGetUniformLocation(mygl::Program::get_instance()->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
-
-        glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
-    }
-
-    // Draw sphere
-    nb_vertices = initVAO("../scenes/default/sphere.obj");
     glm::mat4 world_to_cam_matrix = mygl::Camera::get_instance()->get_world_to_cam_matrix();
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
     world_to_cam_matrix = world_to_cam_matrix * model;
     glUniformMatrix4fv(glGetUniformLocation(mygl::Program::get_instance()->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
+
+    // Draw water
+    texture_manager.bind_texture(0);
+    int nb_vertices = initVAO("../scenes/island/water.obj");
+    glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
+
+    // Draw sand
+    texture_manager.bind_texture(1);
+    nb_vertices = initVAO("../scenes/island/sand.obj");
+    glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
+
+    // Draw palm
+    texture_manager.bind_texture(2);
+    nb_vertices = initVAO("../scenes/island/palm.obj");
+    glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
+
+    // Draw leaf
+    texture_manager.bind_texture(3);
+    nb_vertices = initVAO("../scenes/island/leaf.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
     glutSwapBuffers();
@@ -98,13 +95,17 @@ void display()
 
 int main(int argc, char* argv[])
 {
-    auto program = init(argc, argv, "../scenes/default/basic.vert", "../scenes/default/basic.frag");
+    auto program = init(argc, argv, "../scenes/island/basic.vert", "../scenes/island/basic.frag");
     glutDisplayFunc(display);
 
     initUniformVariables();
 
-    TextureManager texture_manager(program);
-    texture_manager.add_texture("../scenes/default/texture.png", "texture_sampler");
+    texture_manager.set_program(program);
+
+    texture_manager.add_texture("../scenes/island/water.png");
+    texture_manager.add_texture("../scenes/island/sand.png");
+    texture_manager.add_texture("../scenes/island/palm.png");
+    texture_manager.add_texture("../scenes/island/leaf.png");
 
     glutMainLoop();
 
