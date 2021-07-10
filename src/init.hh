@@ -55,10 +55,7 @@ inline bool init_gl()
     return true;
 }
 
-std::shared_ptr<mygl::Program> init(int argc,
-                                    char* argv[],
-                                    const std::string& vert_shader_path,
-                                    const std::string& frag_shader_path)
+void init_context(int argc, char* argv[])
 {
     // Initialization
 
@@ -68,7 +65,11 @@ std::shared_ptr<mygl::Program> init(int argc,
         std::cerr << "OpenGL initialization failed" << std::endl;
     if (!initGlew())
         std::cerr << "Glew initialization failed" << std::endl;
+}
 
+void init_program(const std::string& vert_shader_path,
+                  const std::string& frag_shader_path)
+{
     // Shaders and Program handling
 
     std::ifstream vertex_shader;
@@ -91,12 +92,8 @@ std::shared_ptr<mygl::Program> init(int argc,
     std::string fragment_shader_content((std::istreambuf_iterator<char>(fragment_shader)),
                                         (std::istreambuf_iterator<char>()));
 
-    auto program = mygl::Program::make_program(vertex_shader_content, fragment_shader_content);
+    mygl::Programs::get_instance()->add_program(vertex_shader_content, fragment_shader_content);
 
-    if (program->is_ready())
-        program->use();
-    else
-        std::cerr << "Program error: " << program->get_log() << std::endl;
-
-    return program;
+    if (!mygl::Programs::get_instance()->is_last_ready())
+        std::cerr << "Program error: " << mygl::Programs::get_instance()->get_last_log() << std::endl;
 }

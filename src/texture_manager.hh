@@ -11,20 +11,20 @@ class TextureManager
 public:
     TextureManager() = default;
 
-    void set_program(std::shared_ptr<mygl::Program> program)
+    void set_program(GLuint program)
     {
-        program_ = std::move(program);
+        program_ = program;
     }
 
     void add_texture(const std::string& filename)
     {
-        if (program_ == nullptr)
+        if (program_ == -1)
             return;
 
         auto nb_textures = ids_.size();
 
         auto texture = PNGImage::load(filename);
-        GLint texture_loc = glGetUniformLocation(program_->get_id(), SHADER_NAME.c_str());
+        GLint texture_loc = glGetUniformLocation(program_, SHADER_NAME.c_str());
         if (texture_loc == -1)
         {
             std::cerr << SHADER_NAME + " is not defined in shaders !" << std::endl;
@@ -52,7 +52,7 @@ public:
 
     void bind_texture(size_t pos)
     {
-        if (program_ == nullptr)
+        if (program_ == -1)
             return;
 
         glActiveTexture(GL_TEXTURE0 + pos);
@@ -65,5 +65,5 @@ private:
 
     GLint texture_loc_;
 
-    std::shared_ptr<mygl::Program> program_ = nullptr;
+    GLuint program_ = -1;
 };
