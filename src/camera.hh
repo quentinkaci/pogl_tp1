@@ -47,6 +47,24 @@ namespace mygl
             return camera_pos;
         }
 
+        glm::mat4 get_world_to_cam_matrix(bool turn_around = false) const
+        {
+            glm::mat4 projection = glm::perspective(glm::radians(fov), 1.0f, 0.1f, 100.0f);
+            glm::mat4 view = glm::lookAt(camera_pos, camera_pos + camera_front, CAMERA_UP);
+            
+            if (turn_around)
+            {
+                const float radius = 10.0f;
+                const float time = 0.0001 * glutGet(GLUT_ELAPSED_TIME);
+                float camX = sin(time) * radius;
+                float camZ = cos(time) * radius;
+                view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+                glutPostRedisplay();
+            }
+
+            return projection * view;
+        }
+
         void key_callback(int key, int, int)
         {
             if (key == GLUT_KEY_UP)
