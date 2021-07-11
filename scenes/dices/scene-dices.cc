@@ -13,7 +13,7 @@ TextureManager texture_manager;
 
 void initUniformVariables()
 {
-    GLint loc = glGetUniformLocation(mygl::Program::get_instance()->get_id(), "light_position");
+    GLint loc = glGetUniformLocation(mygl::Programs().get_instance()->get_id(0), "light_position");
     if (loc != -1)
         glUniform4f(loc, LIGHT_POS[0], LIGHT_POS[1], LIGHT_POS[2], LIGHT_POS[3]);
 }
@@ -61,7 +61,7 @@ void display()
     // Draw walls
     glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(30, 30, 30));
     glm::mat4 mvp = world_to_cam_matrix * model;
-    glUniformMatrix4fv(glGetUniformLocation(mygl::Program::get_instance()->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, &mvp[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(mygl::Programs().get_instance()->get_id(0), "world_to_cam_matrix"), 1, GL_FALSE, &mvp[0][0]);
     int nb_vertices = initVAO("../scenes/dices/cube.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
@@ -69,7 +69,7 @@ void display()
     texture_manager.bind_texture(0);
     model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
     mvp = world_to_cam_matrix * model;
-    glUniformMatrix4fv(glGetUniformLocation(mygl::Program::get_instance()->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, &mvp[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(mygl::Programs().get_instance()->get_id(0), "world_to_cam_matrix"), 1, GL_FALSE, &mvp[0][0]);
     nb_vertices = initVAO("../scenes/dices/cube.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
@@ -77,7 +77,7 @@ void display()
     texture_manager.bind_texture(1);
     model = glm::translate(glm::mat4(1.0f), glm::vec3(0, -10, 0));
     mvp = world_to_cam_matrix * model;
-    glUniformMatrix4fv(glGetUniformLocation(mygl::Program::get_instance()->get_id(), "world_to_cam_matrix"), 1, GL_FALSE, &mvp[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(mygl::Programs().get_instance()->get_id(0), "world_to_cam_matrix"), 1, GL_FALSE, &mvp[0][0]);
     nb_vertices = initVAO("../scenes/dices/table.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
@@ -86,12 +86,14 @@ void display()
 
 int main(int argc, char* argv[])
 {
-    auto program = init(argc, argv, "../scenes/dices/basic.vert", "../scenes/dices/basic.frag");
+    init_context(argc, argv);
+    init_program("../scenes/dices/basic.vert", "../scenes/dices/basic.frag");
+    mygl::Programs().get_instance()->use(0);
     glutDisplayFunc(display);
 
     initUniformVariables();
 
-    texture_manager.set_program(program);
+    texture_manager.set_program(mygl::Programs().get_instance()->get_id(0));
 
     texture_manager.add_texture("../scenes/dices/texture.png");
     texture_manager.add_texture("../scenes/dices/table.png");
@@ -99,7 +101,4 @@ int main(int argc, char* argv[])
     glutMainLoop();
 
     return 0;
-
-    // Add shadows
-    // Add nice dice
 }
