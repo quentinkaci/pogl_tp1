@@ -7,16 +7,11 @@
 #include <glm/glm.hpp>
 
 // constexpr float LIGHT_POS[] = {10.f, 10.f, 10.f, 1.f};
-constexpr float LIGHT_POS[] = {0.f, 100.f, 0.f, 1.f};
+constexpr glm::vec3 LIGHT_POS = glm::vec3(0.f, 2.f, 2.f);
 
+GLuint FramebufferName = 0;
+GLuint depthTexture;
 TextureManager texture_manager;
-
-void initUniformVariables()
-{
-    GLint loc = glGetUniformLocation(mygl::Programs().get_instance()->get_id(0), "light_position");
-    if (loc != -1)
-        glUniform4f(loc, LIGHT_POS[0], LIGHT_POS[1], LIGHT_POS[2], LIGHT_POS[3]);
-}
 
 int initVAO(const std::string& obj_path)
 {
@@ -53,31 +48,75 @@ int initVAO(const std::string& obj_path)
 
 void display()
 {
-    glClearColor(0.756, 0.811, 0.964, 1);
+    GLuint depthProgramID = mygl::Programs().get_instance()->get_id(0);
+    GLuint programID = mygl::Programs().get_instance()->get_id(1);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
+    glViewport(0, 0, 1024, 1024);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 world_to_cam_matrix = mygl::Camera::get_instance()->get_world_to_cam_matrix(true);
-    
-    // Draw walls
-    glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(30, 30, 30));
-    glm::mat4 mvp = world_to_cam_matrix * model;
-    glUniformMatrix4fv(glGetUniformLocation(mygl::Programs().get_instance()->get_id(0), "world_to_cam_matrix"), 1, GL_FALSE, &mvp[0][0]);
+    mygl::Programs().get_instance()->use(0);
+
+    glm::mat4 depthProjectionMatrix = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
+	glm::mat4 depthViewMatrix = glm::lookAt(LIGHT_POS, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    glm::mat4 depthModelMatrix = glm::mat4(1.0);
+	glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
+
+    GLuint depthMatrixID = glGetUniformLocation(depthProgramID, "depthMVP");
+    glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]);
+
     int nb_vertices = initVAO("../scenes/dices/cube.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
-    // Draw first cube
+    nb_vertices = initVAO("../scenes/dices/table.obj");
+    glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
+
+    // ---
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, 1024, 1024);
+    glDisable(GL_CULL_FACE);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    mygl::Programs().get_instance()->use(1);
+
+    glm::mat4 VP = mygl::Camera::get_instance()->get_world_to_cam_matrix(true);
+    
+    glm::mat4 biasMatrix(
+			0.5, 0.0, 0.0, 0.0, 
+			0.0, 0.5, 0.0, 0.0,
+			0.0, 0.0, 0.5, 0.0,
+			0.5, 0.5, 0.5, 1.0
+	);
+    glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
+    GLuint DepthBiasID = glGetUniformLocation(programID, "DepthBiasMVP");
+    glUniformMatrix4fv(DepthBiasID, 1, GL_FALSE, &depthBiasMVP[0][0]);
+
+    GLuint ShadowMapID  = glGetUniformLocation(programID, "shadowMap");
+    glActiveTexture(GL_TEXTURE10);
+    glBindTexture(GL_TEXTURE_2D, depthTexture);
+    glUniform1i(ShadowMapID, 10);
+
+    // Draw walls
+    glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(30, 30, 30));
+    glm::mat4 MVP = VP * model;
+    glUniformMatrix4fv(glGetUniformLocation(programID, "MVP"), 1, GL_FALSE, &MVP[0][0]);
+    nb_vertices = initVAO("../scenes/dices/cube.obj");
+    glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
+
+    // Draw cube
     texture_manager.bind_texture(0);
-    model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-    mvp = world_to_cam_matrix * model;
-    glUniformMatrix4fv(glGetUniformLocation(mygl::Programs().get_instance()->get_id(0), "world_to_cam_matrix"), 1, GL_FALSE, &mvp[0][0]);
+    MVP = VP * glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+    glUniformMatrix4fv(glGetUniformLocation(programID, "MVP"), 1, GL_FALSE, &MVP[0][0]);
     nb_vertices = initVAO("../scenes/dices/cube.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
     // Draw table
     texture_manager.bind_texture(1);
-    model = glm::translate(glm::mat4(1.0f), glm::vec3(0, -10, 0));
-    mvp = world_to_cam_matrix * model;
-    glUniformMatrix4fv(glGetUniformLocation(mygl::Programs().get_instance()->get_id(0), "world_to_cam_matrix"), 1, GL_FALSE, &mvp[0][0]);
+    MVP = VP * glm::translate(glm::mat4(1.0f), glm::vec3(0, -10, 0));
+    glUniformMatrix4fv(glGetUniformLocation(programID, "MVP"), 1, GL_FALSE, &MVP[0][0]);
     nb_vertices = initVAO("../scenes/dices/table.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
@@ -87,18 +126,34 @@ void display()
 int main(int argc, char* argv[])
 {
     init_context(argc, argv);
+
+    init_program("../scenes/dices/depth.vert", "../scenes/dices/depth.frag");
+    
+    // Create depth texture
+	glGenFramebuffers(1, &FramebufferName);
+	glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
+	glGenTextures(1, &depthTexture);
+	glBindTexture(GL_TEXTURE_2D, depthTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1024, 1024, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
+	glDrawBuffer(GL_NONE);
+    
     init_program("../scenes/dices/basic.vert", "../scenes/dices/basic.frag");
-    mygl::Programs().get_instance()->use(0);
-    glutDisplayFunc(display);
 
-    initUniformVariables();
-
-    texture_manager.set_program(mygl::Programs().get_instance()->get_id(0));
-
+    texture_manager.set_program(mygl::Programs().get_instance()->get_id(1));
     texture_manager.add_texture("../scenes/dices/texture.png");
     texture_manager.add_texture("../scenes/dices/table.png");
 
+    glutDisplayFunc(display);
     glutMainLoop();
+
+    // FIXME: no shadows... :(
 
     return 0;
 }

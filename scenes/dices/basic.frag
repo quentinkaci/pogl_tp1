@@ -1,17 +1,25 @@
 #version 460
 
 uniform sampler2D texture_sampler;
+uniform sampler2DShadow shadowMap;
 
 in vec2 uv;
-in vec4 normal;
-in vec4 light_dir;
+in vec4 shadow_coord;
 
 out vec4 output_color;
 
 void main() {
-    float ambient_light = 0.2;
-    float light_intensity = dot(normal, light_dir);
-    vec3 text_color = texture(texture_sampler, uv).rgb;
+	vec3 LightColor = vec3(1, 1, 1);
+	
+	vec3 MaterialDiffuseColor = texture(texture_sampler, uv).rgb;
 
-    output_color = vec4(clamp(light_intensity, ambient_light, 1.f) * text_color, 1.f);
+    /*float bias = 0.005;
+    float visibility = 1.0;
+    if (texture(shadowMap, shadow_coord.xy) < shadow_coord.z - bias) {
+        visibility = 0.5;
+    }*/
+
+	float visibility = texture(shadowMap, vec3(shadow_coord.xy, shadow_coord.z / shadow_coord.w));
+
+	output_color = vec4(visibility * MaterialDiffuseColor * LightColor, 1);
 }
