@@ -11,6 +11,6 @@ out vec3 normal;
 
 void main() {
     gl_Position = world_to_cam_matrix * vec4(vPosition, 1.f);
-    position = vec3(model * vec4(vPosition, 1.0));
-    normal = mat3(transpose(inverse(model))) * vNormal;
+    position = vPosition;
+    normal = vNormal;
 }

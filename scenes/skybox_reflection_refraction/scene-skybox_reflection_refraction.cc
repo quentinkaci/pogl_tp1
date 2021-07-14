@@ -58,9 +58,9 @@ void initUniformVariablesSkyBox()
         glUniform1i(loc, 0);
 }
 
-void initUniformVariablesObject()
+void initUniformVariablesObject(GLuint program_id)
 {
-    GLint loc = glGetUniformLocation(mygl::Programs::get_instance()->get_id(1), "texture_sampler");
+    GLint loc = glGetUniformLocation(mygl::Programs::get_instance()->get_id(program_id), "texture_sampler");
     if (loc != -1)
         glUniform1i(loc, 0);
 }
@@ -82,7 +82,7 @@ int initVAOSkybox()
     return 36;
 }
 
-int initVAOObject()
+int initVAOObject(const std::string& obj_file)
 {
     GLuint vao_id;
     GLuint vbo_vertex_ids[2];
@@ -90,7 +90,7 @@ int initVAOObject()
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
-    mygl::ObjLoader::load_obj("../scenes/skybox_reflection_refraction/object.obj", vertices, uvs, normals);
+    mygl::ObjLoader::load_obj(obj_file, vertices, uvs, normals);
 
     glGenVertexArrays(1, &vao_id);
     glBindVertexArray(vao_id);
@@ -115,7 +115,7 @@ void display()
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Object rendering
+    // Object 1 rendering
 
     mygl::Programs().get_instance()->use(1);
 
@@ -124,10 +124,24 @@ void display()
     world_to_cam_matrix = world_to_cam_matrix * model;
     auto camera_position = mygl::Camera::get_instance()->get_position();
     glUniformMatrix4fv(glGetUniformLocation(mygl::Programs::get_instance()->get_id(1), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
-    glUniformMatrix4fv(glGetUniformLocation(mygl::Programs::get_instance()->get_id(1), "camera_position"), 1, GL_FALSE, &camera_position[0]);
-    glUniformMatrix4fv(glGetUniformLocation(mygl::Programs::get_instance()->get_id(1), "model"), 1, GL_FALSE, &model[0][0]);
+    glUniform3fv(glGetUniformLocation(mygl::Programs::get_instance()->get_id(1), "camera_position"), 1, &camera_position[0]);
 
-    auto nb_vertices = initVAOObject();
+    auto nb_vertices = initVAOObject("../scenes/skybox_reflection_refraction/teapot.obj");
+    texture_manager.bind_cube_map_texture(0);
+    glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
+
+    // Object 2 rendering
+
+    mygl::Programs().get_instance()->use(2);
+
+    world_to_cam_matrix = mygl::Camera::get_instance()->get_world_to_cam_matrix();
+    model = glm::mat4(1.0f);
+    world_to_cam_matrix = world_to_cam_matrix * model;
+    camera_position = mygl::Camera::get_instance()->get_position();
+    glUniformMatrix4fv(glGetUniformLocation(mygl::Programs::get_instance()->get_id(2), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
+    glUniform3fv(glGetUniformLocation(mygl::Programs::get_instance()->get_id(2), "camera_position"), 1, &camera_position[0]);
+
+    nb_vertices = initVAOObject("../scenes/skybox_reflection_refraction/teapot_2.obj");
     texture_manager.bind_cube_map_texture(0);
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
@@ -159,9 +173,13 @@ int main(int argc, char* argv[])
     mygl::Programs().get_instance()->use(0);
     initUniformVariablesSkyBox();
 
-    init_program("../scenes/skybox_reflection_refraction/object_shader.vert", "../scenes/skybox_reflection_refraction/object_shader.frag");
+    init_program("../scenes/skybox_reflection_refraction/object_shader.vert", "../scenes/skybox_reflection_refraction/object_reflection_shader.frag");
     mygl::Programs().get_instance()->use(1);
-    initUniformVariablesObject();
+    initUniformVariablesObject(1);
+
+    init_program("../scenes/skybox_reflection_refraction/object_shader.vert", "../scenes/skybox_reflection_refraction/object_refraction_shader.frag");
+    mygl::Programs().get_instance()->use(2);
+    initUniformVariablesObject(2);
 
     texture_manager.add_cube_map_texture({"../scenes/skybox_reflection_refraction/skybox/right.png",
                                           "../scenes/skybox_reflection_refraction/skybox/left.png",

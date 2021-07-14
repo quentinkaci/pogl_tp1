@@ -55,7 +55,6 @@ namespace mygl
                 }
                 else if (code == "f")
                 {
-                    std::string vertex1, vertex2, vertex3;
                     unsigned int vertex_indices[3], uv_indices[3], normal_indices[3];
                     std::sscanf(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d\n", &vertex_indices[0], &uv_indices[0], &normal_indices[0], &vertex_indices[1], &uv_indices[1], &normal_indices[1], &vertex_indices[2], &uv_indices[2], &normal_indices[2]);
 
