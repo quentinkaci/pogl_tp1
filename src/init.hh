@@ -28,7 +28,7 @@ inline bool initGlut(int& argc, char* argv[])
 {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-    glutInitWindowSize(1024, 1024);
+    glutInitWindowSize(1920, 1080);
     glutInitWindowPosition(10, 10);
     glutCreateWindow("OpenGL Project");
 

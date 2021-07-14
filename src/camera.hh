@@ -34,7 +34,7 @@ namespace mygl
 
         glm::mat4 get_projection_matrix() const
         {
-            return glm::perspective(glm::radians(fov), 1.0f, 0.1f, 100.0f);
+            return glm::perspective(glm::radians(fov), 1920.f / 1080.f, 0.1f, 100.0f);
         }
 
         glm::mat4 get_world_to_cam_matrix() const
