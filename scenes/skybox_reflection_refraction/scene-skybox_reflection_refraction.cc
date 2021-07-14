@@ -115,18 +115,36 @@ void display()
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Skybox rendering
+
+    // Deactivate depth mask temporarily to display it at background
+    glDepthMask(GL_FALSE);
+    mygl::Programs().get_instance()->use(0);
+
+    // Crop translations to keep skybox far from camera
+    glm::mat4 view = glm::mat4(glm::mat3(mygl::Camera::get_instance()->get_view_matrix()));
+    glm::mat4 projection = mygl::Camera::get_instance()->get_projection_matrix();
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 world_to_cam_matrix = projection * view * model;
+    glUniformMatrix4fv(glGetUniformLocation(mygl::Programs::get_instance()->get_id(0), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
+
+    auto nb_vertices = initVAOSkybox();
+    texture_manager.bind_cube_map_texture(0);
+    glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
+    glDepthMask(GL_TRUE);
+
     // Object 1 rendering
 
     mygl::Programs().get_instance()->use(1);
 
-    glm::mat4 world_to_cam_matrix = mygl::Camera::get_instance()->get_world_to_cam_matrix();
-    glm::mat4 model = glm::mat4(1.0f);
+    world_to_cam_matrix = mygl::Camera::get_instance()->get_world_to_cam_matrix();
+    model = glm::mat4(1.0f);
     world_to_cam_matrix = world_to_cam_matrix * model;
     auto camera_position = mygl::Camera::get_instance()->get_position();
     glUniformMatrix4fv(glGetUniformLocation(mygl::Programs::get_instance()->get_id(1), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
     glUniform3fv(glGetUniformLocation(mygl::Programs::get_instance()->get_id(1), "camera_position"), 1, &camera_position[0]);
 
-    auto nb_vertices = initVAOObject("../scenes/skybox_reflection_refraction/teapot.obj");
+    nb_vertices = initVAOObject("../scenes/skybox_reflection_refraction/teapot.obj");
     texture_manager.bind_cube_map_texture(0);
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
@@ -144,23 +162,6 @@ void display()
     nb_vertices = initVAOObject("../scenes/skybox_reflection_refraction/teapot_2.obj");
     texture_manager.bind_cube_map_texture(0);
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
-
-    // Skybox rendering
-
-    glDepthFunc(GL_LEQUAL);
-    mygl::Programs().get_instance()->use(0);
-
-    // Crop translations to keep skybox far from camera
-    glm::mat4 view = glm::mat4(glm::mat3(mygl::Camera::get_instance()->get_view_matrix()));
-    glm::mat4 projection = mygl::Camera::get_instance()->get_projection_matrix();
-    model = glm::mat4(1.0f);
-    world_to_cam_matrix = projection * view * model;
-    glUniformMatrix4fv(glGetUniformLocation(mygl::Programs::get_instance()->get_id(0), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
-
-    nb_vertices = initVAOSkybox();
-    texture_manager.bind_cube_map_texture(0);
-    glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
-    glDepthFunc(GL_LESS);
 
     glutSwapBuffers();
 }

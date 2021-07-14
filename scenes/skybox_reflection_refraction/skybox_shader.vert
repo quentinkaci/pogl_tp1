@@ -7,6 +7,6 @@ uniform mat4 world_to_cam_matrix;
 out vec3 texture_coordinates;
 
 void main() {
-    gl_Position = (world_to_cam_matrix * vec4(vPosition, 1.f)).xyww;
+    gl_Position = world_to_cam_matrix * vec4(vPosition, 1.f);
     texture_coordinates = vPosition;
 }
