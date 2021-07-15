@@ -6,7 +6,6 @@
 #include "program.hh"
 #include <glm/glm.hpp>
 
-// constexpr float LIGHT_POS[] = {10.f, 10.f, 10.f, 1.f};
 constexpr glm::vec3 LIGHT_POS = glm::vec3(0.f, 2.f, 2.f);
 
 GLuint frame_buffer_name = 0;
