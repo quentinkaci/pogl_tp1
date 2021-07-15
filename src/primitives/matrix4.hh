@@ -46,35 +46,6 @@ namespace mygl
     };
 } // namespace mygl
 
-inline static size_t number_of_digits(double n)
-{
-    std::ostringstream strs;
-    strs << n;
-    return strs.str().size();
-}
-
-inline std::ostream& operator<<(std::ostream& out, const mygl::matrix4& m)
-{
-    size_t max_len_per_column[4];
-
-    for (size_t j = 0; j < 4; ++j)
-    {
-        size_t max_len{};
-
-        for (size_t i = 0; i < 4; ++i)
-            if (const auto num_length{number_of_digits(m.data[i + j * 4])}; num_length > max_len)
-                max_len = num_length;
-
-        max_len_per_column[j] = max_len;
-    }
-
-    for (size_t i = 0; i < 4; ++i)
-        for (size_t j = 0; j < 4; ++j)
-            out << (j == 0 ? "\n| " : "") << std::setw(max_len_per_column[j]) << m.data[i + j * 4] << (j == 3 ? " |" : " ");
-
-    return out << '\n';
-}
-
 inline void perspective(mygl::matrix4& mat,
                         float angle, float ratio,
                         const float& z_near,
