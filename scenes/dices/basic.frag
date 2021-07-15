@@ -20,7 +20,5 @@ void main() {
 		visibility = 0.1;
 	}
 
-	//float visibility = texture(shadowMap, vec3(shadow_coord.xy, shadow_coord.z / shadow_coord.w));
-
 	output_color = vec4(visibility * MaterialDiffuseColor * LightColor, 1);
 }
