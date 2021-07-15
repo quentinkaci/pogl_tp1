@@ -122,7 +122,7 @@ void display()
     mygl::Programs().get_instance()->use(0);
 
     // Crop translations to keep skybox far from camera
-    glm::mat4 view = glm::mat4(glm::mat3(mygl::Camera::get_instance()->get_view_matrix(false)));
+    glm::mat4 view = glm::mat4(glm::mat3(mygl::Camera::get_instance()->get_view_matrix()));
     glm::mat4 projection = mygl::Camera::get_instance()->get_projection_matrix();
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 world_to_cam_matrix = projection * view * model;
@@ -137,7 +137,7 @@ void display()
 
     mygl::Programs().get_instance()->use(1);
 
-    world_to_cam_matrix = mygl::Camera::get_instance()->get_world_to_cam_matrix();
+    world_to_cam_matrix = mygl::Camera::get_instance()->get_world_to_cam_matrix(false);
     model = glm::mat4(1.0f);
     world_to_cam_matrix = world_to_cam_matrix * model;
     auto camera_position = mygl::Camera::get_instance()->get_position();
@@ -152,7 +152,7 @@ void display()
 
     mygl::Programs().get_instance()->use(2);
 
-    world_to_cam_matrix = mygl::Camera::get_instance()->get_world_to_cam_matrix();
+    world_to_cam_matrix = mygl::Camera::get_instance()->get_world_to_cam_matrix(false);
     model = glm::mat4(1.0f);
     world_to_cam_matrix = world_to_cam_matrix * model;
     camera_position = mygl::Camera::get_instance()->get_position();
