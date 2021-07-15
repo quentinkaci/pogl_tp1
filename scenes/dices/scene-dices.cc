@@ -52,7 +52,7 @@ void display()
     GLuint programID = mygl::Programs().get_instance()->get_id(1);
 
     glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
-    glViewport(0, 0, 1024, 1024);
+    glViewport(0, 0, 1920, 1920);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -67,7 +67,10 @@ void display()
     GLuint depthMatrixID = glGetUniformLocation(depthProgramID, "depthMVP");
     glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]);
 
-    int nb_vertices = initVAO("../scenes/dices/cube.obj");
+    int nb_vertices = initVAO("../scenes/dices/walls.obj");
+    glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
+
+    nb_vertices = initVAO("../scenes/dices/cube.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
     nb_vertices = initVAO("../scenes/dices/table.obj");
@@ -76,7 +79,7 @@ void display()
     // ---
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, 1024, 1024);
+    glViewport(0, 0, 1920, 1920);
     glDisable(GL_CULL_FACE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -100,15 +103,18 @@ void display()
     glUniform1i(ShadowMapID, 10);
 
     // Draw walls
+    // glBindTexture(GL_TEXTURE_2D, 0);
     glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(30, 30, 30));
+    model = glm::translate(model, glm::vec3(0, 0.24, 0));
     glm::mat4 MVP = VP * model;
     glUniformMatrix4fv(glGetUniformLocation(programID, "MVP"), 1, GL_FALSE, &MVP[0][0]);
-    nb_vertices = initVAO("../scenes/dices/cube.obj");
+    nb_vertices = initVAO("../scenes/dices/walls.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
     // Draw cube
     texture_manager.bind_texture(0);
-    MVP = VP * glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+    model = glm::scale(glm::mat4(1.0f), glm::vec3(0.45, 0.45, 0.45));
+    MVP = VP * glm::translate(model, glm::vec3(0, -5.4, 0));
     glUniformMatrix4fv(glGetUniformLocation(programID, "MVP"), 1, GL_FALSE, &MVP[0][0]);
     nb_vertices = initVAO("../scenes/dices/cube.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
@@ -134,7 +140,7 @@ int main(int argc, char* argv[])
 	glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 	glGenTextures(1, &depthTexture);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1024, 1024, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1920, 1920, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -152,8 +158,6 @@ int main(int argc, char* argv[])
 
     glutDisplayFunc(display);
     glutMainLoop();
-
-    // FIXME: no shadows... :(
 
     return 0;
 }
