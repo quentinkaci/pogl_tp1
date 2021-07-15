@@ -1,7 +1,7 @@
 #version 460
 
 uniform sampler2D texture_sampler;
-uniform sampler2DShadow shadowMap;
+uniform sampler2DShadow shadow_texture;
 
 in vec2 uv;
 in vec4 shadow_coord;
@@ -15,7 +15,7 @@ void main() {
 
 	float bias = 0.005;
 	float visibility = 1.0;
-	if (texture(shadowMap, vec3(shadow_coord.xy, 1)) < shadow_coord.z - bias)
+	if (texture(shadow_texture, vec3(shadow_coord.xy, 1)) < shadow_coord.z - bias)
 	{
 		visibility = 0.1;
 	}
