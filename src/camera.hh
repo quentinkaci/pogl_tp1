@@ -27,6 +27,26 @@ namespace mygl
     public:
         static Camera* get_instance();
 
+        glm::mat4 get_view_matrix() const
+        {
+            return glm::lookAt(camera_pos, camera_pos + camera_front, CAMERA_UP);
+        }
+
+        glm::mat4 get_projection_matrix() const
+        {
+            return glm::perspective(glm::radians(fov), 1920.f / 1080.f, 0.1f, 100.0f);
+        }
+
+        glm::mat4 get_world_to_cam_matrix() const
+        {
+            return get_projection_matrix() * get_view_matrix();
+        }
+
+        glm::vec3 get_position() const
+        {
+            return camera_pos;
+        }
+
         glm::mat4 get_world_to_cam_matrix(bool turn_around = false) const
         {
             glm::mat4 projection = glm::perspective(glm::radians(fov), 1.0f, 0.1f, 100.0f);
@@ -63,7 +83,7 @@ namespace mygl
         {
             float xoffset = (x - last_x) * CAMERA_SENSITIVITY;
             float yoffset = (last_y - y) * CAMERA_SENSITIVITY;
-            
+
             last_x = x;
             last_y = y;
 
