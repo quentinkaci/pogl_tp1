@@ -9,8 +9,8 @@
 // constexpr float LIGHT_POS[] = {10.f, 10.f, 10.f, 1.f};
 constexpr glm::vec3 LIGHT_POS = glm::vec3(0.f, 2.f, 2.f);
 
-GLuint FramebufferName = 0;
-GLuint depthTexture;
+GLuint frame_buffer_name = 0;
+GLuint shadow_texture;
 TextureManager texture_manager;
 
 int initVAO(const std::string& obj_path)
@@ -48,10 +48,12 @@ int initVAO(const std::string& obj_path)
 
 void display()
 {
-    GLuint depthProgramID = mygl::Programs().get_instance()->get_id(0);
-    GLuint programID = mygl::Programs().get_instance()->get_id(1);
+    // Determine depth texture
 
-    glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
+    GLuint depth_program_id = mygl::Programs().get_instance()->get_id(0);
+    GLuint program_id = mygl::Programs().get_instance()->get_id(1);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_name);
     glViewport(0, 0, 1920, 1080);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -59,13 +61,12 @@ void display()
 
     mygl::Programs().get_instance()->use(0);
 
-    glm::mat4 depthProjectionMatrix = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
-	glm::mat4 depthViewMatrix = glm::lookAt(LIGHT_POS, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-    glm::mat4 depthModelMatrix = glm::mat4(1.0);
-	glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
+    glm::mat4 depth_P = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
+	glm::mat4 depth_V = glm::lookAt(LIGHT_POS, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	glm::mat4 depth_MVP = depth_P * depth_V;
 
-    GLuint depthMatrixID = glGetUniformLocation(depthProgramID, "depthMVP");
-    glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]);
+    GLuint depth_MVP_id = glGetUniformLocation(depth_program_id, "depth_MVP");
+    glUniformMatrix4fv(depth_MVP_id, 1, GL_FALSE, &depth_MVP[0][0]);
 
     int nb_vertices = initVAO("../scenes/dices/walls.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
@@ -76,7 +77,7 @@ void display()
     nb_vertices = initVAO("../scenes/dices/table.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
-    // ---
+    // Render scene
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, 1920, 1080);
@@ -87,27 +88,26 @@ void display()
 
     glm::mat4 VP = mygl::Camera::get_instance()->get_world_to_cam_matrix(true);
     
-    glm::mat4 biasMatrix(
+    glm::mat4 bias_matrix(
 			0.5, 0.0, 0.0, 0.0, 
 			0.0, 0.5, 0.0, 0.0,
 			0.0, 0.0, 0.5, 0.0,
 			0.5, 0.5, 0.5, 1.0
 	);
-    glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
-    GLuint DepthBiasID = glGetUniformLocation(programID, "DepthBiasMVP");
-    glUniformMatrix4fv(DepthBiasID, 1, GL_FALSE, &depthBiasMVP[0][0]);
+    glm::mat4 depth_bias_MVP = bias_matrix * depth_MVP;
+    GLuint depth_bias_MVP_id = glGetUniformLocation(program_id, "depth_bias_MVP");
+    glUniformMatrix4fv(depth_bias_MVP_id, 1, GL_FALSE, &depth_bias_MVP[0][0]);
 
-    GLuint ShadowMapID  = glGetUniformLocation(programID, "shadowMap");
+    GLuint shadow_texture_sampler_id = glGetUniformLocation(program_id, "shadow_texture");
     glActiveTexture(GL_TEXTURE10);
-    glBindTexture(GL_TEXTURE_2D, depthTexture);
-    glUniform1i(ShadowMapID, 10);
+    glBindTexture(GL_TEXTURE_2D, shadow_texture);
+    glUniform1i(shadow_texture_sampler_id, 10);
 
     // Draw walls
-    // glBindTexture(GL_TEXTURE_2D, 0);
     glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(30, 30, 30));
     model = glm::translate(model, glm::vec3(0, 0.24, 0));
     glm::mat4 MVP = VP * model;
-    glUniformMatrix4fv(glGetUniformLocation(programID, "MVP"), 1, GL_FALSE, &MVP[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(program_id, "MVP"), 1, GL_FALSE, &MVP[0][0]);
     nb_vertices = initVAO("../scenes/dices/walls.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
@@ -115,14 +115,14 @@ void display()
     texture_manager.bind_texture(0);
     model = glm::scale(glm::mat4(1.0f), glm::vec3(0.45, 0.45, 0.45));
     MVP = VP * glm::translate(model, glm::vec3(0, -5.4, 0));
-    glUniformMatrix4fv(glGetUniformLocation(programID, "MVP"), 1, GL_FALSE, &MVP[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(program_id, "MVP"), 1, GL_FALSE, &MVP[0][0]);
     nb_vertices = initVAO("../scenes/dices/cube.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
     // Draw table
     texture_manager.bind_texture(1);
     MVP = VP * glm::translate(glm::mat4(1.0f), glm::vec3(0, -10, 0));
-    glUniformMatrix4fv(glGetUniformLocation(programID, "MVP"), 1, GL_FALSE, &MVP[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(program_id, "MVP"), 1, GL_FALSE, &MVP[0][0]);
     nb_vertices = initVAO("../scenes/dices/table.obj");
     glDrawArrays(GL_TRIANGLES, 0, nb_vertices);
 
@@ -136,18 +136,18 @@ int main(int argc, char* argv[])
     init_program("../scenes/dices/depth.vert", "../scenes/dices/depth.frag");
     
     // Create depth texture
-	glGenFramebuffers(1, &FramebufferName);
-	glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
-	glGenTextures(1, &depthTexture);
-	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1920, 1080, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glGenFramebuffers(1, &frame_buffer_name);
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_name);
+	glGenTextures(1, &shadow_texture);
+	glBindTexture(GL_TEXTURE_2D, shadow_texture);
+	glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1920, 1080, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadow_texture, 0);
 	glDrawBuffer(GL_NONE);
     
     init_program("../scenes/dices/basic.vert", "../scenes/dices/basic.frag");
