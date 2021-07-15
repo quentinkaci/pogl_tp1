@@ -37,11 +37,6 @@ namespace mygl
             return glm::perspective(glm::radians(fov), 1920.f / 1080.f, 0.1f, 100.0f);
         }
 
-        glm::mat4 get_world_to_cam_matrix() const
-        {
-            return get_projection_matrix() * get_view_matrix();
-        }
-
         glm::vec3 get_position() const
         {
             return camera_pos;
@@ -51,7 +46,7 @@ namespace mygl
         {
             glm::mat4 projection = get_projection_matrix();
             glm::mat4 view = get_view_matrix();
-            
+
             if (turn_around)
             {
                 const float radius = 15.0f;
@@ -82,7 +77,7 @@ namespace mygl
         void mouse_motion_callback(int x, int y)
         {
             float x_offset = (x - last_x) * CAMERA_SENSITIVITY;
-            float y_offset = - (y - last_y) * CAMERA_SENSITIVITY;
+            float y_offset = -(y - last_y) * CAMERA_SENSITIVITY;
 
             last_x = x;
             last_y = y;
@@ -91,10 +86,7 @@ namespace mygl
             pitch += y_offset;
             pitch = std::clamp(pitch, -90.0f, 90.0f);
 
-            glm::vec3 direction;
-            direction[0] = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-            direction[1] = sin(glm::radians(pitch));
-            direction[2] = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+            glm::vec3 direction = {cos(glm::radians(yaw)) * cos(glm::radians(pitch)), sin(glm::radians(pitch)), sin(glm::radians(yaw)) * cos(glm::radians(pitch))};
             camera_front = normalize(direction);
 
             glutPostRedisplay();
@@ -123,8 +115,8 @@ namespace mygl
 
         float yaw = -90.0f;
         float pitch = 0.0f;
-        float last_x = 512.0f;
-        float last_y = 512.0f;
+        float last_x = 1920.f / 2.f;
+        float last_y = 1080.f / 2.f;
         float fov = 90.0f;
     };
 
