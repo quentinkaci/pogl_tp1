@@ -66,7 +66,7 @@ void init_context(int argc, char* argv[])
         std::cerr << "Glew initialization failed" << std::endl;
 }
 
-void init_program(const std::string& vert_shader_path,
+void init_display_program(const std::string& vert_shader_path,
                   const std::string& frag_shader_path)
 {
     // Shaders and Program handling
@@ -91,8 +91,20 @@ void init_program(const std::string& vert_shader_path,
     std::string fragment_shader_content((std::istreambuf_iterator<char>(fragment_shader)),
                                         (std::istreambuf_iterator<char>()));
 
-    mygl::Programs::get_instance()->add_program(vertex_shader_content, fragment_shader_content);
+    mygl::Programs::get_instance()->add_display_program(vertex_shader_content, fragment_shader_content);
+}
 
-    if (!mygl::Programs::get_instance()->is_last_ready())
-        std::cerr << "Program error: " << mygl::Programs::get_instance()->get_last_log() << std::endl;
+void init_compute_program(const std::string& compute_shader_path)
+{
+    std::ifstream compute_shader;
+    compute_shader.open(compute_shader_path);
+    if (!compute_shader.is_open())
+    {
+        std::cerr << "Compute shader cannot be opened" << std::endl;
+        exit(1);
+    }
+    std::string compute_shader_content((std::istreambuf_iterator<char>(compute_shader)),
+                                       (std::istreambuf_iterator<char>()));
+
+    mygl::Programs::get_instance()->add_compute_program(compute_shader_content);
 }

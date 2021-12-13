@@ -28,7 +28,7 @@ namespace mygl
                 glDeleteProgram(p);
         }
 
-        inline void add_program(const std::string& vertex_shader_src, const std::string& fragment_shader_src)
+        inline void add_display_program(const std::string& vertex_shader_src, const std::string& fragment_shader_src)
         {
             // Code adapted from https://www.khronos.org/opengl/wiki/Shader_Compilation
 
@@ -55,7 +55,8 @@ namespace mygl
 
                 glDeleteShader(vertex_shader);
 
-                singleton_->last_log = &info_log[0];
+                std::cerr << &info_log[0] << std::endl;
+                exit(1);
             }
 
             GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -77,7 +78,8 @@ namespace mygl
                 glDeleteShader(fragment_shader);
                 glDeleteShader(vertex_shader);
 
-                singleton_->last_log = &info_log[0];
+                std::cerr << &info_log[0] << std::endl;
+                exit(1);
             }
 
             GLuint program = glCreateProgram();
@@ -102,21 +104,69 @@ namespace mygl
                 glDeleteShader(vertex_shader);
                 glDeleteShader(fragment_shader);
 
-                singleton_->last_log = &info_log[0];
+                std::cerr << &info_log[0] << std::endl;
+                exit(1);
             }
 
             glDetachShader(program, vertex_shader);
             glDetachShader(program, fragment_shader);
-
-            singleton_->is_last_ready_ = true;
         };
 
-        inline std::string get_last_log()
+        inline void add_compute_program(const std::string& compute_shader_src)
         {
-            return last_log;
-        };
+            size_t nb_programs = programs_.size();
 
-        [[nodiscard]] inline bool is_last_ready() const { return is_last_ready_; };
+            singleton_->programs_.push_back(-1);
+
+            GLuint compute_shader = glCreateShader(GL_COMPUTE_SHADER);
+
+            const auto* source = (const GLchar*)compute_shader_src.c_str();
+            glShaderSource(compute_shader, 1, &source, 0);
+
+            glCompileShader(compute_shader);
+
+            GLint is_compiled = 0;
+            glGetShaderiv(compute_shader, GL_COMPILE_STATUS, &is_compiled);
+            if (is_compiled == GL_FALSE)
+            {
+                GLint max_length = 0;
+                glGetShaderiv(compute_shader, GL_INFO_LOG_LENGTH, &max_length);
+
+                std::vector<GLchar> info_log(max_length);
+                glGetShaderInfoLog(compute_shader, max_length, &max_length, &info_log[0]);
+
+                glDeleteShader(compute_shader);
+
+                std::cerr << &info_log[0] << std::endl;
+                exit(1);
+            }
+
+            GLuint program = glCreateProgram();
+
+            singleton_->programs_[nb_programs] = program;
+
+            glAttachShader(program, compute_shader);
+            glLinkProgram(program);
+
+            GLint is_linked = 0;
+            glGetProgramiv(program, GL_LINK_STATUS, (int*)&is_linked);
+            if (is_linked == GL_FALSE)
+            {
+                GLint max_length = 0;
+                glGetProgramiv(program, GL_INFO_LOG_LENGTH, &max_length);
+
+                std::vector<GLchar> info_log(max_length);
+                glGetProgramInfoLog(program, max_length, &max_length, &info_log[0]);
+
+                glDeleteProgram(program);
+                glDeleteShader(compute_shader);
+
+                std::cerr << &info_log[0] << std::endl;
+                exit(1);
+            }
+
+            glDetachShader(program, compute_shader);
+        };
 
         inline void use(size_t pos) const
         {
@@ -127,10 +177,6 @@ namespace mygl
 
     private:
         std::vector<GLuint> programs_;
-
-        std::string last_log;
-
-        bool is_last_ready_;
     };
 
     std::shared_ptr<Programs> Programs::singleton_ = nullptr;
