@@ -24,6 +24,12 @@ void mouse_callback(int button, int state, int x, int y)
     mygl::Camera::get_instance()->mouse_callback(button, state, x, y);
 }
 
+void timer(int)
+{
+    glutPostRedisplay();
+    glutTimerFunc(1000 / 60, timer, 0);
+}
+
 inline bool initGlut(int& argc, char* argv[])
 {
     glutInit(&argc, argv);
@@ -35,6 +41,8 @@ inline bool initGlut(int& argc, char* argv[])
     glutSpecialFunc(key_callback);
     glutMotionFunc(mouse_motion_callback);
     glutMouseFunc(mouse_callback);
+
+    timer(0);
 
     return true;
 }

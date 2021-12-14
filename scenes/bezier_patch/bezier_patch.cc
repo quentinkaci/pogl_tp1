@@ -15,6 +15,13 @@ constexpr double Z_TRANSLATION_SCALE = 1;
 const glm::vec3 color = {1., 0, 0};
 const glm::vec3 light_position = {0., -5., 0.};
 
+enum AnimationType
+{
+    WAVE = 0,
+    RANDOM_INTERP
+};
+AnimationType animation_type = WAVE;
+
 struct MeshNode
 {
     glm::vec3 pos = {0, 0, 0};
@@ -22,9 +29,9 @@ struct MeshNode
 };
 
 std::vector<MeshNode> mesh_nodes;
-std::vector<MeshNode> patch_nodes(PATCH_HEIGHT * PATCH_WIDTH);
+std::vector<MeshNode> patch_nodes(PATCH_HEIGHT* PATCH_WIDTH);
 
-static bool init = true;
+static uint animation_time = 0;
 
 void update_mesh_nodes()
 {
@@ -33,17 +40,37 @@ void update_mesh_nodes()
         for (int y = 0; y <= MESH_HEIGHT; ++y)
         {
             for (int x = 0; x <= MESH_WIDTH; ++x)
-                mesh_nodes.push_back({{x, 0, y}});
+                mesh_nodes.push_back({{x, Z_TRANSLATION_SCALE * (2 * (double)rand() / INT_MAX - 1), y}});
         }
     }
 
-    if (init)
+    if (animation_type == WAVE)
     {
-        for (auto& node : mesh_nodes)
+        for (int y = 0; y <= MESH_HEIGHT; ++y)
         {
-            node.pos.y = (node.pos.y  + node.pos.y + Z_TRANSLATION_SCALE * (2 * (double)rand() / INT_MAX - 1)) / 2;
+            for (int x = 0; x <= MESH_WIDTH; ++x)
+            {
+                int idx = x + (MESH_WIDTH + 1) * y;
+                if (y == animation_time)
+                    mesh_nodes[idx].pos.y += 1;
+                else if (y == animation_time - 1)
+                    mesh_nodes[idx].pos.y -= 1;
+            }
         }
-        init = false;
+
+        if (animation_time++ > MESH_HEIGHT)
+            animation_time = 0;
+    }
+    else if (animation_type == RANDOM_INTERP)
+    {
+        for (int y = 0; y <= MESH_HEIGHT; ++y)
+        {
+            for (int x = 0; x <= MESH_WIDTH; ++x)
+            {
+                int idx = x + (MESH_WIDTH + 1) * y;
+                mesh_nodes[idx].pos.y = (mesh_nodes[idx].pos.y + mesh_nodes[idx].pos.y + Z_TRANSLATION_SCALE * (2 * (double)rand() / INT_MAX - 1)) / 2;
+            }
+        }
     }
 }
 
@@ -51,6 +78,8 @@ GLuint vao_id;
 GLuint mesh_node_ssbo_id;
 GLuint patch_node_ssbo_id;
 GLuint points_ssbo_id;
+
+static int count = 0;
 
 void display()
 {
@@ -76,7 +105,11 @@ void display()
 
     // Draw particles
 
-    update_mesh_nodes();
+    if (count++ >= 3)
+    {
+        update_mesh_nodes();
+        count = 0;
+    }
 
     // Generate Bezier patch
 
@@ -130,8 +163,6 @@ void display()
 
     glDrawArrays(GL_TRIANGLES, 0, 6 * PATCH_HEIGHT * PATCH_WIDTH);
     glutSwapBuffers();
-
-    glutPostRedisplay();
 }
 
 int main(int argc, char* argv[])

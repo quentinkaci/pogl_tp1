@@ -54,7 +54,6 @@ namespace mygl
                 float cam_x = sin(time) * radius;
                 float cam_z = cos(time) * radius;
                 view = glm::lookAt(glm::vec3(cam_x, 0.0, cam_z), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-                glutPostRedisplay();
             }
 
             return projection * view;
@@ -70,8 +69,6 @@ namespace mygl
                 camera_pos = camera_pos - normalize(cross(camera_front, CAMERA_UP)) * CAMERA_SPEED;
             else if (key == GLUT_KEY_RIGHT)
                 camera_pos = camera_pos + normalize(cross(camera_front, CAMERA_UP)) * CAMERA_SPEED;
-
-            glutPostRedisplay();
         }
 
         void mouse_motion_callback(int x, int y)
@@ -88,8 +85,6 @@ namespace mygl
 
             glm::vec3 direction = {cos(glm::radians(yaw)) * cos(glm::radians(pitch)), sin(glm::radians(pitch)), sin(glm::radians(yaw)) * cos(glm::radians(pitch))};
             camera_front = normalize(direction);
-
-            glutPostRedisplay();
         }
 
         void mouse_callback(int button, int state, int x, int y)
@@ -105,8 +100,6 @@ namespace mygl
             }
 
             fov = std::clamp(fov, 1.0f, 90.0f);
-
-            glutPostRedisplay();
         }
 
     private:
