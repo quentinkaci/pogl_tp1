@@ -56,10 +56,13 @@ constexpr int MESH_WIDTH = 4;
 constexpr int PATCH_HEIGHT = 10 * MESH_HEIGHT;
 constexpr int PATCH_WIDTH = 10 * MESH_WIDTH;
 constexpr double Z_TRANSLATION_SCALE = 1;
-constexpr bool PHONG = true;
+constexpr bool PHONG = false;
 
 const glm::vec3 color = {1., 0, 0};
 const glm::vec3 light_position = {0., -5., 0.};
+const glm::vec3 skeleton_color = {0., 0., 1.};
+const glm::vec3 control_points_color = {0., 1., 0.};
+const float control_points_scale = 0.05;
 
 enum AnimationType
 {
@@ -180,7 +183,13 @@ void display()
     glUniform1i(glGetUniformLocation(mygl::Programs::get_instance()->get_id(3), "texture_sampler"), 0);
 
     mygl::Programs().get_instance()->use(4);
+    glUniform3f(glGetUniformLocation(mygl::Programs::get_instance()->get_id(4), "color"), skeleton_color[0], skeleton_color[1], skeleton_color[2]);
     glUniformMatrix4fv(glGetUniformLocation(mygl::Programs::get_instance()->get_id(4), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
+
+    mygl::Programs().get_instance()->use(5);
+    glUniform3f(glGetUniformLocation(mygl::Programs::get_instance()->get_id(5), "color"), control_points_color[0], control_points_color[1], control_points_color[2]);
+    glUniform1f(glGetUniformLocation(mygl::Programs::get_instance()->get_id(5), "scale"), control_points_scale);
+    glUniformMatrix4fv(glGetUniformLocation(mygl::Programs::get_instance()->get_id(5), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
 
     if (!PHONG)
     {
@@ -296,6 +305,12 @@ void display()
 
     glDrawArrays(GL_LINES, 0, mesh_lines.size());
 
+    // Display control points
+
+    mygl::Programs().get_instance()->use(5);
+
+    glDrawArrays(GL_LINES, 0, mesh_lines.size());
+
     glutSwapBuffers();
 }
 
@@ -307,7 +322,8 @@ int main(int argc, char* argv[])
     init_compute_program("../scenes/bezier_patch/bezier_patch.cs");
     init_compute_program("../scenes/bezier_patch/mesh_creation.cs");
     init_display_program("../scenes/bezier_patch/skybox.vs", "../scenes/bezier_patch/skybox.fs");
-    init_display_program("../scenes/bezier_patch/skelet_lines.vs", "../scenes/bezier_patch/skelet_lines.fs");
+    init_display_program("../scenes/bezier_patch/skeleton_lines.vs", "../scenes/bezier_patch/skeleton_lines.fs");
+    init_display_program("../scenes/bezier_patch/control_points.vs", "../scenes/bezier_patch/control_points.fs", "../scenes/bezier_patch/control_points.gs");
 
     texture_manager.add_cube_map_texture({"../scenes/bezier_patch/skybox/right.png",
                                           "../scenes/bezier_patch/skybox/left.png",

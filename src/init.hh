@@ -102,6 +102,44 @@ void init_display_program(const std::string& vert_shader_path,
     mygl::Programs::get_instance()->add_display_program(vertex_shader_content, fragment_shader_content);
 }
 
+void init_display_program(const std::string& vert_shader_path,
+                          const std::string& frag_shader_path, const std::string& geom_shader_path)
+{
+    // Shaders and Program handling
+
+    std::ifstream vertex_shader;
+    vertex_shader.open(vert_shader_path);
+    if (!vertex_shader.is_open())
+    {
+        std::cerr << "Vertex shader cannot be opened" << std::endl;
+        exit(1);
+    }
+    std::string vertex_shader_content((std::istreambuf_iterator<char>(vertex_shader)),
+                                      (std::istreambuf_iterator<char>()));
+
+    std::ifstream fragment_shader;
+    fragment_shader.open(frag_shader_path);
+    if (!fragment_shader.is_open())
+    {
+        std::cerr << "Fragment shader cannot be opened" << std::endl;
+        exit(1);
+    }
+    std::string fragment_shader_content((std::istreambuf_iterator<char>(fragment_shader)),
+                                        (std::istreambuf_iterator<char>()));
+
+    std::ifstream geometry_shader;
+    geometry_shader.open(geom_shader_path);
+    if (!geometry_shader.is_open())
+    {
+        std::cerr << "Geometry shader cannot be opened" << std::endl;
+        exit(1);
+    }
+    std::string geometry_shader_content((std::istreambuf_iterator<char>(geometry_shader)),
+                                        (std::istreambuf_iterator<char>()));
+
+    mygl::Programs::get_instance()->add_display_program(vertex_shader_content, fragment_shader_content, geometry_shader_content);
+}
+
 void init_compute_program(const std::string& compute_shader_path)
 {
     std::ifstream compute_shader;
