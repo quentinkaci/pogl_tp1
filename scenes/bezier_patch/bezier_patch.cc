@@ -75,7 +75,7 @@ struct MeshNode
 };
 
 std::vector<MeshNode> mesh_nodes;
-std::vector<MeshNode> patch_nodes(PATCH_HEIGHT* PATCH_WIDTH);
+std::vector<MeshNode> mesh_lines;
 
 static uint animation_time = 0;
 
@@ -118,10 +118,35 @@ void update_mesh_nodes()
             }
         }
     }
+
+    mesh_lines.clear();
+
+    for (int y = 0; y <= MESH_HEIGHT; ++y)
+    {
+        for (int x = 0; x <= MESH_WIDTH; ++x)
+        {
+            int idx = x + y * (MESH_WIDTH + 1);
+
+            if (y < MESH_HEIGHT)
+            {
+                int bottom_idx = x + (y + 1) * (MESH_WIDTH + 1);
+                mesh_lines.push_back(mesh_nodes[idx]);
+                mesh_lines.push_back(mesh_nodes[bottom_idx]);
+            }
+
+            if (x < MESH_WIDTH)
+            {
+                int right_idx = (x + 1) + y * (MESH_WIDTH + 1);
+                mesh_lines.push_back(mesh_nodes[idx]);
+                mesh_lines.push_back(mesh_nodes[right_idx]);
+            }
+        }
+    }
 }
 
 GLuint vao_id;
 GLuint mesh_node_ssbo_id;
+GLuint mesh_lines_buf_id;
 GLuint patch_node_ssbo_id;
 GLuint points_ssbo_id;
 
@@ -153,6 +178,9 @@ void display()
 
     mygl::Programs().get_instance()->use(3);
     glUniform1i(glGetUniformLocation(mygl::Programs::get_instance()->get_id(3), "texture_sampler"), 0);
+
+    mygl::Programs().get_instance()->use(4);
+    glUniformMatrix4fv(glGetUniformLocation(mygl::Programs::get_instance()->get_id(4), "world_to_cam_matrix"), 1, GL_FALSE, &world_to_cam_matrix[0][0]);
 
     if (!PHONG)
     {
@@ -206,14 +234,11 @@ void display()
     glDeleteBuffers(1, &patch_node_ssbo_id);
     glGenBuffers(1, &patch_node_ssbo_id);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, patch_node_ssbo_id);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(struct MeshNode) * patch_nodes.size(), patch_nodes.data(), GL_DYNAMIC_COPY);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(struct MeshNode) * PATCH_WIDTH * PATCH_HEIGHT, 0, GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, patch_node_ssbo_id);
 
     glDispatchCompute(PATCH_WIDTH, PATCH_HEIGHT, 1);
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-    std::vector<float> storage(4 * PATCH_WIDTH * PATCH_HEIGHT);
-    glGetNamedBufferSubData(patch_node_ssbo_id, 0, 4 * PATCH_WIDTH * PATCH_HEIGHT * sizeof(float), storage.data());
 
     // Convert Bezier patch to triangles
 
@@ -225,13 +250,13 @@ void display()
     glDeleteBuffers(1, &points_ssbo_id);
     glGenBuffers(1, &points_ssbo_id);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, points_ssbo_id);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, 2 * 6 * sizeof(struct MeshNode) * patch_nodes.size(), 0, GL_DYNAMIC_COPY);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, 2 * 6 * sizeof(struct MeshNode) * PATCH_WIDTH * PATCH_HEIGHT, 0, GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, points_ssbo_id);
 
     glDispatchCompute(PATCH_WIDTH - 1, PATCH_HEIGHT - 1, 1);
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-    // Display triangles with Phong BRDF
+    // Display triangles
 
     mygl::Programs().get_instance()->use(0);
 
@@ -256,6 +281,21 @@ void display()
     texture_manager.bind_cube_map_texture(0);
 
     glDrawArrays(GL_TRIANGLES, 0, 6 * PATCH_HEIGHT * PATCH_WIDTH);
+
+    // Display skeleton lines
+
+    mygl::Programs().get_instance()->use(4);
+
+    glDeleteBuffers(1, &mesh_lines_buf_id);
+    glGenBuffers(1, &mesh_lines_buf_id);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh_lines_buf_id);
+    glBufferData(GL_ARRAY_BUFFER, mesh_lines.size() * sizeof(struct MeshNode), mesh_lines.data(), GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(GL_FLOAT), 0);
+
+    glDrawArrays(GL_LINES, 0, mesh_lines.size());
+
     glutSwapBuffers();
 }
 
@@ -267,6 +307,7 @@ int main(int argc, char* argv[])
     init_compute_program("../scenes/bezier_patch/bezier_patch.cs");
     init_compute_program("../scenes/bezier_patch/mesh_creation.cs");
     init_display_program("../scenes/bezier_patch/skybox.vs", "../scenes/bezier_patch/skybox.fs");
+    init_display_program("../scenes/bezier_patch/skelet_lines.vs", "../scenes/bezier_patch/skelet_lines.fs");
 
     texture_manager.add_cube_map_texture({"../scenes/bezier_patch/skybox/right.png",
                                           "../scenes/bezier_patch/skybox/left.png",
