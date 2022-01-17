@@ -1,4 +1,4 @@
-# POGL project
+# Real-time generation of Bezier patches
 
 ## References
 
